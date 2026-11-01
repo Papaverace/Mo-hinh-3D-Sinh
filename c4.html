@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maize C4 Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed 3D stage; a floating instrument panel on the right (bottom sheet on phones); labels float over the scene. Deliberately single dark theme, like a microscope bench. */
+:root{
+  --bg:#09130f;
+  --panel:rgba(11,21,17,.86);
+  --panel-2:rgba(255,255,255,.04);
+  --fg:#e6eee2;
+  --muted:#93a99a;
+  --line:rgba(196,224,203,.15);
+  --kernel:#e8b84a;
+  --kernel-ink:#1c1505;
+  --chloro:#7cc35f;
+  --m-co2:#d3dde0; --m-pep:#8be063; --m-oaa:#ff9b5e; --m-mal:#c697ff; --m-pyr:#52d6e6;
+  --m-atp:#ffd54f; --m-adp:#c0913c; --m-amp:#c0913c; --m-nadph:#71abff; --m-glc:#fff1bd;
+  --display:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+#leaders{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lbl{position:absolute;left:0;top:0;white-space:nowrap;font:500 12px/1.2 var(--body);padding:5px 9px;border-radius:6px;background:rgba(9,17,14,.8);border:1px solid var(--line);color:var(--fg);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);will-change:transform}
+.lbl small{display:block;font:400 10.5px/1.3 var(--mono);color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.node{pointer-events:auto;cursor:pointer;display:flex;align-items:center;gap:7px;font:500 12px/1 var(--body);color:var(--fg);padding:5px 10px 5px 5px;border-radius:999px;background:rgba(9,17,14,.86);border:1px solid var(--nc,var(--line))}
+.node b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--nc,#666);color:#0b120e;font:600 11px/1 var(--mono)}
+.node:hover{background:rgba(30,44,37,.95)}
+.node.on{background:var(--nc);color:#0b120e;box-shadow:0 0 0 4px color-mix(in srgb,var(--nc) 30%,transparent)}
+.node.on b{background:#0b120e;color:var(--nc)}
+.node:focus-visible,.btn:focus-visible,.tab:focus-visible,.step:focus-visible{outline:2px solid var(--kernel);outline-offset:2px}
+.mtag{position:absolute;left:0;top:0;font:500 11px/1 var(--mono);padding:3px 7px;border-radius:999px;border:1px solid currentColor;background:rgba(6,12,10,.82);white-space:nowrap}
+
+.hud{position:fixed;inset:0;z-index:3;pointer-events:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-bottom,0px));
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,352px);grid-template-rows:auto minmax(0,1fr) auto;gap:12px}
+.head{grid-column:1;grid-row:1;justify-self:start;pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px 12px 16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;gap:10px;max-width:100%}
+.eyebrow{font:500 10.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.eyebrow i{font-style:normal;color:var(--kernel)}
+h1{margin:0;font:400 32px/1 var(--display);letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:italic;color:var(--chloro)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tab{appearance:none;border:0;background:transparent;color:var(--muted);font:500 12.5px/1 var(--body);padding:8px 11px;border-radius:7px;cursor:pointer;display:flex;gap:7px;align-items:center}
+.tab span{font:500 10.5px/1 var(--mono);opacity:.75}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{background:var(--kernel);color:var(--kernel-ink)}
+.panel{grid-column:2;grid-row:1/4;align-self:start;max-height:100%;overflow:auto;pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;gap:14px;scrollbar-width:thin}
+.panel h2{margin:0;font:400 26px/1.08 var(--display);text-wrap:balance}
+.panel p{margin:0;font-size:13.5px;line-height:1.55;color:#c9d6cb;max-width:62ch}
+.panel .note{font-size:12px;color:var(--muted)}
+.btn{appearance:none;cursor:pointer;border-radius:9px;font:600 13px/1 var(--body);padding:11px 14px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{background:rgba(255,255,255,.08)}
+.btn.primary{background:var(--kernel);color:var(--kernel-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl{display:grid;gap:10px}
+.ctrl label{display:grid;grid-template-columns:96px minmax(0,1fr) 40px;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+.ctrl output{font:500 11px/1 var(--mono);color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--kernel)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.checks label{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:7px 9px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);cursor:pointer}
+.checks input{accent-color:var(--kernel);margin:0}
+.sw{width:10px;height:10px;border-radius:3px;flex:none}
+dl.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:0;font-size:12.5px;border-top:1px solid var(--line);padding-top:12px}
+dl.facts dt{color:var(--muted)}
+dl.facts dd{margin:0;color:var(--fg)}
+.card{border:1px solid var(--line);background:var(--panel-2);border-radius:10px;padding:12px 13px;display:grid;gap:7px}
+.card h3{margin:0;font:600 14px/1.3 var(--body)}
+.card .where{font:500 10.5px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--kernel)}
+.eq{font:500 12.5px/1.5 var(--mono);background:rgba(0,0,0,.28);border-radius:7px;padding:8px 10px;color:#f3f1e4;overflow-x:auto;white-space:nowrap}
+.enz{font-size:12px;color:var(--muted)}
+.enz strong{color:var(--fg);font-weight:500}
+.steps{display:grid;gap:4px;list-style:none;margin:0;padding:0}
+.step{appearance:none;width:100%;text-align:left;cursor:pointer;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 9px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--fg);font:500 12.5px/1.3 var(--body)}
+.step b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font:600 11px/1 var(--mono);background:var(--sc);color:#0b120e}
+.step em{font:400 10.5px/1 var(--mono);color:var(--muted);font-style:normal}
+.step:hover{background:var(--panel-2)}
+.step.on{border-color:var(--sc);background:color-mix(in srgb,var(--sc) 12%,transparent)}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font:400 11.5px/1.2 var(--mono);color:#cbd6cc}
+.legend span{display:flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor}
+table.budget{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+table.budget th,table.budget td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+table.budget th:first-child,table.budget td:first-child{text-align:left;color:var(--muted);font-weight:400}
+table.budget th{font:500 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sec{font:500 10.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.hint{grid-column:1;grid-row:3;justify-self:start;align-self:end;font:400 11.5px/1.3 var(--mono);color:#dfe8db;background:rgba(9,17,14,.62);border:1px solid var(--line);border-radius:999px;padding:7px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#fade{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity .45s ease;background:radial-gradient(120% 90% at 50% 50%,#2c5a2a 0%,#0f2618 55%,#08120e 100%);display:grid;place-items:center}
+#fade.on{opacity:1}
+#fade p{font:italic 400 26px/1.2 var(--display);color:#dfeccf;margin:0}
+#err{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;z-index:9}
+@media (max-width:759px){
+  .hud{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px}
+  .head{padding:10px 12px;gap:8px;justify-self:stretch}
+  h1{font-size:24px}
+  .tab{padding:7px 9px;font-size:12px}
+  .panel{grid-column:1;grid-row:3;max-height:44vh;padding:14px 14px 16px;gap:12px}
+  .panel h2{font-size:22px}
+  .hint{display:none}
+  .lbl{font-size:11px;padding:4px 7px}
+  .lbl small{display:none}
+  .node{font-size:11px;padding:4px 8px 4px 4px}
+  .node b{width:18px;height:18px}
+}
+@media (prefers-reduced-motion:reduce){#fade{transition:none}}
+</style>
+
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<canvas id="stage" tabindex="0" aria-label="3D model of a maize plant and leaf cross-section"></canvas>
+<div id="labels"><svg id="leaders" aria-hidden="true"></svg></div>
+<div id="fade"><p id="fadeText">Cutting a transverse section…</p></div>
+
+<div class="hud">
+  <header class="head">
+    <div class="eyebrow"><i>Zea mays</i> · NADP-ME type C4</div>
+    <h1>Maize <em>C4</em> Explorer</h1>
+    <nav class="tabs" role="tablist" aria-label="Zoom level">
+      <button class="tab" role="tab" data-mode="plant" aria-selected="true"><span>1</span>Plant</button>
+      <button class="tab" role="tab" data-mode="kranz" aria-selected="false"><span>2</span>Kranz anatomy</button>
+      <button class="tab" role="tab" data-mode="pathway" aria-selected="false"><span>3</span>C4 pathway</button>
+    </nav>
+  </header>
+  <aside class="panel" id="panel" aria-live="polite"></aside>
+  <div class="hint" id="hint">Drag to orbit · scroll or pinch to zoom</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+if(!window.THREE || !THREE.OrbitControls){
+  document.body.insertAdjacentHTML('beforeend','<div id="err"><p>The 3D library could not load. Check your connection and reload the page.</p></div>');
+  return;
+}
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('stage');
+let renderer;
+try{ renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'}); }
+catch(e){ document.body.insertAdjacentHTML('beforeend','<div id="err"><p>This browser could not start WebGL, which the 3D model needs.</p></div>'); return; }
+const PR = Math.min(devicePixelRatio||1, 2);
+renderer.setPixelRatio(PR);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const lin = h => new THREE.Color(h).convertSRGBToLinear();
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 420);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.7;
+
+const plantScene = new THREE.Scene();
+const cellScene = new THREE.Scene();
+let activeScene = plantScene;
+
+/* ================= LAYER 1: PLANT ================= */
+const SUN = new THREE.Vector3();
+const sunCol = new THREE.Color();
+const skyU = { zen:new THREE.Color(), hor:new THREE.Color() };
+const fogCol = new THREE.Color(0.62,0.62,0.58);
+plantScene.fog = new THREE.Fog(fogCol, 26, 120);
+
+const leafUniforms = {
+  uTime:{value:0}, uWind:{value:1}, uSunDir:{value:SUN}, uSunCol:{value:sunCol},
+  uSky:{value:new THREE.Color(0.34,0.46,0.66)}, uGround:{value:new THREE.Color(0.16,0.12,0.07)},
+  uFogColor:{value:fogCol}, uFogNear:{value:26}, uFogFar:{value:120}
+};
+const leafVS = `
+attribute float aPhase;
+uniform float uTime; uniform float uWind;
+varying vec3 vN; varying vec3 vW; varying vec2 vUv; varying float vDist;
+void main(){
+  float ph = aPhase;
+  vec4 wp; vec3 n = normal;
+  #ifdef USE_INSTANCING
+    wp = modelMatrix * instanceMatrix * vec4(position,1.0);
+    n = mat3(instanceMatrix) * n;
+    ph += instanceMatrix[3].x*0.71 + instanceMatrix[3].z*0.37;
+  #else
+    wp = modelMatrix * vec4(position,1.0);
+  #endif
+  float s = uv.x;
+  float gust = 0.65 + 0.35*sin(uTime*0.37 + wp.x*0.05);
+  float sway = sin(uTime*1.25 + ph + s*2.4)*0.62 + sin(uTime*2.7 + ph*1.7 + s*4.8)*0.24;
+  float flutter = sin(uTime*7.5 + ph*3.1 + s*13.0 + uv.y*2.5);
+  float amp = uWind * gust * s * s;
+  wp.x += (sway*0.20 + flutter*0.012) * amp;
+  wp.z += (sway*0.07) * amp;
+  wp.y += (flutter*0.03 - abs(sway)*0.06) * amp;
+  vN = normalize(mat3(modelMatrix) * n);
+  vW = wp.xyz; vUv = uv;
+  vec4 mv = viewMatrix * wp;
+  vDist = -mv.z;
+  gl_Position = projectionMatrix * mv;
+}`;
+const leafFS = `
+uniform vec3 uSunDir; uniform vec3 uSunCol; uniform vec3 uSky; uniform vec3 uGround;
+uniform vec3 uFogColor; uniform float uFogNear; uniform float uFogFar;
+varying vec3 vN; varying vec3 vW; varying vec2 vUv; varying float vDist;
+void main(){
+  vec3 N = normalize(vN);
+  if(!gl_FrontFacing) N = -N;
+  vec3 V = normalize(cameraPosition - vW);
+  vec3 L = normalize(uSunDir);
+  float s = vUv.x; float v = vUv.y;
+  vec3 base = mix(vec3(0.035,0.11,0.02), vec3(0.11,0.25,0.045), smoothstep(0.0,0.85,s));
+  base = mix(base, vec3(0.30,0.27,0.10), smoothstep(0.90,1.0,s)*0.55);
+  float rib = 1.0 - smoothstep(0.03,0.10,abs(v));
+  base = mix(base, vec3(0.30,0.40,0.16), rib*0.75);
+  float veins = 0.5 + 0.5*sin(abs(v)*72.0);
+  base *= 0.88 + 0.12*veins;
+  float ndl = dot(N,L);
+  float wrap = max((ndl + 0.4)/1.4, 0.0);
+  float hemi = N.y*0.5 + 0.5;
+  vec3 amb = mix(uGround, uSky, hemi) * 0.6;
+  float back = clamp(-ndl, 0.0, 1.0);
+  float through = pow(max(dot(V,-L),0.0), 2.2);
+  vec3 sss = vec3(0.30,0.55,0.06) * (through*(0.35+0.65*back) + back*0.22) * (0.75+0.25*veins) * (1.0-rib*0.5);
+  vec3 H = normalize(L+V);
+  float spec = pow(max(dot(N,H),0.0), 36.0) * 0.22 * step(0.0, ndl);
+  vec3 col = base*(amb + uSunCol*wrap*0.85) + sss*uSunCol*1.25 + spec*uSunCol;
+  float f = smoothstep(uFogNear, uFogFar, vDist);
+  col = mix(col, uFogColor, f);
+  gl_FragColor = vec4(col, 1.0);
+  #include <tonemapping_fragment>
+  #include <encodings_fragment>
+}`;
+const leafMat = new THREE.ShaderMaterial({uniforms:leafUniforms, vertexShader:leafVS, fragmentShader:leafFS, side:THREE.DoubleSide});
+const fieldLeafMat = new THREE.ShaderMaterial({uniforms:leafUniforms, vertexShader:leafVS, fragmentShader:leafFS, side:THREE.DoubleSide});
+
+function leafGeo(L, W, droop, phase, segs, across){
+  const pos=[], uv=[], ph=[], idx=[];
+  for(let i=0;i<=segs;i++){
+    const s=i/segs;
+    const cx=L*0.92*s, cy=L*(0.5*s - droop*s*s);
+    const dx=L*0.92, dy=L*(0.5-2*droop*s); const tl=Math.hypot(dx,dy);
+    const tx=dx/tl, ty=dy/tl, nx=-ty, ny=tx;
+    let w = W*Math.pow(Math.sin(Math.PI*Math.min(1,0.1+s*0.92)),0.75);
+    if(s<0.08) w *= 0.55 + (s/0.08)*0.45;
+    const tw = s*0.55*Math.sin(phase*2.3);
+    const ct=Math.cos(tw), st=Math.sin(tw);
+    for(let j=0;j<=across;j++){
+      const v=-1+2*j/across;
+      const lat=v*w*0.5;
+      const fold=Math.abs(v)*w*0.17;
+      const wave = s>0.15 ? Math.sin(s*58+phase*3+(v>0?0:1.7))*0.02*v*v*Math.min(1,(s-0.15)*4) : 0;
+      const off=fold+wave;
+      pos.push(cx+nx*off+nx*lat*st, cy+ny*off+ny*lat*st, lat*ct);
+      uv.push(s, v); ph.push(phase);
+    }
+  }
+  for(let i=0;i<segs;i++) for(let j=0;j<across;j++){
+    const a=i*(across+1)+j, b=a+across+1;
+    idx.push(a,b,a+1, b,b+1,a+1);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv,2));
+  g.setAttribute('aPhase', new THREE.Float32BufferAttribute(ph,1));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+function mergeGeos(geos){
+  let vc=0, ic=0; geos.forEach(g=>{vc+=g.attributes.position.count; ic+=g.index.count;});
+  const P=new Float32Array(vc*3), N=new Float32Array(vc*3), U=new Float32Array(vc*2), A=new Float32Array(vc), I=new Uint32Array(ic);
+  let vo=0, io=0;
+  geos.forEach(g=>{
+    P.set(g.attributes.position.array, vo*3); N.set(g.attributes.normal.array, vo*3);
+    U.set(g.attributes.uv.array, vo*2); A.set(g.attributes.aPhase.array, vo);
+    const ix=g.index.array; for(let k=0;k<ix.length;k++) I[io+k]=ix[k]+vo;
+    vo+=g.attributes.position.count; io+=ix.length;
+  });
+  const m=new THREE.BufferGeometry();
+  m.setAttribute('position',new THREE.BufferAttribute(P,3)); m.setAttribute('normal',new THREE.BufferAttribute(N,3));
+  m.setAttribute('uv',new THREE.BufferAttribute(U,2)); m.setAttribute('aPhase',new THREE.BufferAttribute(A,1));
+  m.setIndex(new THREE.BufferAttribute(I,1));
+  return m;
+}
+
+// Sky dome
+const skyMat = new THREE.ShaderMaterial({
+  uniforms:{uSun:{value:SUN}, uZen:{value:skyU.zen}, uHor:{value:skyU.hor}, uSunCol:{value:sunCol}},
+  vertexShader:`varying vec3 vD; void main(){ vD=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+  fragmentShader:`uniform vec3 uSun; uniform vec3 uZen; uniform vec3 uHor; uniform vec3 uSunCol; varying vec3 vD;
+  void main(){ vec3 d=normalize(vD); float h=clamp(d.y,0.0,1.0);
+    vec3 c=mix(uHor,uZen,pow(h,0.55));
+    float s=max(dot(d,normalize(uSun)),0.0);
+    c += uSunCol*(pow(s,900.0)*5.0 + pow(s,14.0)*0.28 + pow(s,3.0)*0.06);
+    if(d.y<0.0) c=uHor*0.85;
+    gl_FragColor=vec4(c,1.0);
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
+  }`, side:THREE.BackSide, depthWrite:false, fog:false
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(300,32,16), skyMat);
+plantScene.add(sky);
+
+const hemi = new THREE.HemisphereLight(0xa9c8ff, 0x4a3a22, 0.75);
+plantScene.add(hemi);
+const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048,2048);
+Object.assign(sunLight.shadow.camera,{left:-6,right:6,top:6,bottom:-6,near:1,far:60});
+sunLight.shadow.bias = -0.0006; sunLight.shadow.normalBias = 0.02;
+sunLight.target.position.set(0,3,0);
+plantScene.add(sunLight, sunLight.target);
+
+// ground with soil texture
+(function(){
+  const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d');
+  x.fillStyle='#5b4a33'; x.fillRect(0,0,256,256);
+  for(let i=0;i<5200;i++){ const v=Math.random(); x.fillStyle=`rgba(${v<.5?40:120},${v<.5?30:100},${v<.5?18:62},${Math.random()*0.35})`; x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*3,1+Math.random()*3);}
+  for(let i=0;i<220;i++){ x.strokeStyle=`rgba(${70+Math.random()*60},${90+Math.random()*50},40,0.5)`; x.beginPath(); const px=Math.random()*256, py=Math.random()*256; x.moveTo(px,py); x.lineTo(px+(Math.random()-.5)*10,py-Math.random()*8); x.stroke();}
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(70,70); t.encoding=THREE.sRGBEncoding; t.anisotropy=4;
+  const g=new THREE.Mesh(new THREE.CircleGeometry(160,64), new THREE.MeshStandardMaterial({map:t, roughness:1, color:0xb8a88c}));
+  g.rotation.x=-Math.PI/2; g.receiveShadow=true; plantScene.add(g);
+})();
+
+const HERO = new THREE.Group(); plantScene.add(HERO);
+const STALK_H = 6.6;
+const stalkR = y => 0.13 - 0.075*(y/STALK_H);
+const NODE_Y = []; for(let k=0;k<=12;k++) NODE_Y.push(0.35 + k*0.52);
+// stalk with node bulges
+(function(){
+  const g=new THREE.CylinderGeometry(0.055,0.13,STALK_H,20,90);
+  g.translate(0,STALK_H/2,0);
+  const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const y=p.getY(i); let near=1e9; NODE_Y.forEach(n=>{ near=Math.min(near,Math.abs(y-n)); });
+    const f=1+0.13*Math.exp(-(near*near)/0.0016);
+    p.setX(i,p.getX(i)*f); p.setZ(i,p.getZ(i)*f);
+  }
+  g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:lin('#7f9a45'),roughness:.55}));
+  m.castShadow=m.receiveShadow=true; HERO.add(m);
+  const ringMat=new THREE.MeshStandardMaterial({color:lin('#56702c'),roughness:.6});
+  NODE_Y.forEach(y=>{ const r=new THREE.Mesh(new THREE.TorusGeometry(stalkR(y)*1.1,0.012,6,24),ringMat); r.rotation.x=Math.PI/2; r.position.y=y; HERO.add(r);});
+  // brace (prop) roots
+  const rootMat=new THREE.MeshStandardMaterial({color:lin('#9b6f55'),roughness:.7});
+  for(let i=0;i<9;i++){
+    const a=i/9*Math.PI*2+0.3, y0=0.22+(i%3)*0.09;
+    const c=new THREE.CatmullRomCurve3([V3(Math.cos(a)*0.11,y0,Math.sin(a)*0.11),V3(Math.cos(a)*0.24,y0-0.08,Math.sin(a)*0.24),V3(Math.cos(a)*0.38,-0.05,Math.sin(a)*0.38)]);
+    const r=new THREE.Mesh(new THREE.TubeGeometry(c,12,0.018,6,false),rootMat); r.castShadow=true; HERO.add(r);
+  }
+})();
+// leaves
+const heroLeaves=[];
+for(let k=1;k<=11;k++){
+  const y=NODE_Y[k], f=Math.sin(Math.PI*(k+1)/13);
+  const L=1.35+1.65*f, Wd=0.12+0.085*f, droop=0.95-k*0.045, phase=k*1.37;
+  const g=leafGeo(L,Wd,droop,phase,34,6);
+  const m=new THREE.Mesh(g,leafMat); m.castShadow=true;
+  const holder=new THREE.Group(); holder.position.y=y;
+  holder.rotation.y=(k%2?0:Math.PI)+((k*0.37)%0.7)-0.35;
+  m.position.x=stalkR(y)*0.95; m.rotation.x=(k%2?1:-1)*0.08;
+  holder.add(m); HERO.add(holder);
+  m.userData.kind='leaf'; heroLeaves.push(m);
+}
+// ears
+function makeEar(scale){
+  const ear=new THREE.Group();
+  const prof=t=>Math.pow(Math.sin(Math.PI*Math.min(1,t*1.12+0.06)),0.55);
+  const huskPts=[], cobPts=[];
+  for(let i=0;i<=24;i++){ const t=i/24; huskPts.push(new THREE.Vector2(0.105*prof(t)+0.004,t*0.98)); cobPts.push(new THREE.Vector2(0.078*prof(t*0.98),t*0.9)); }
+  const gap=1.1, phiLen=Math.PI*2-gap;
+  const husk=new THREE.Mesh(new THREE.LatheGeometry(huskPts,40,0,phiLen),new THREE.MeshStandardMaterial({color:lin('#93b25a'),roughness:.6,side:THREE.DoubleSide}));
+  husk.rotation.y=Math.PI/2-(phiLen+gap/2);
+  husk.castShadow=true; ear.add(husk);
+  const cob=new THREE.Mesh(new THREE.LatheGeometry(cobPts,24),new THREE.MeshStandardMaterial({color:lin('#c99a3a'),roughness:.7}));
+  ear.add(cob);
+  const rows=16, per=26, kg=new THREE.SphereGeometry(1,8,6);
+  const kernels=new THREE.InstancedMesh(kg,new THREE.MeshStandardMaterial({roughness:.35}),rows*per);
+  const d=new THREE.Object3D(), c=new THREE.Color(); let n=0;
+  for(let r=0;r<rows;r++) for(let i=0;i<per;i++){
+    const t=0.08+i/(per-1)*0.8, a=r/rows*Math.PI*2+(i%2)*0.09, rad=0.078*prof(t*0.98)+0.006;
+    d.position.set(Math.sin(a)*rad,t*0.9,Math.cos(a)*rad);
+    d.lookAt(Math.sin(a)*rad*3,t*0.9,Math.cos(a)*rad*3);
+    const sz=0.6+0.4*Math.sin(Math.PI*Math.min(1,t*1.1));
+    d.scale.set(0.017*sz,0.021*sz,0.012); d.updateMatrix(); kernels.setMatrixAt(n,d.matrix);
+    c.setHSL(0.115+Math.random()*0.02,0.85,0.5+Math.random()*0.08).convertSRGBToLinear(); kernels.setColorAt(n,c); n++;
+  }
+  ear.add(kernels);
+  const sp=[];
+  for(let i=0;i<46;i++){
+    const a=Math.random()*Math.PI*2, out=0.2+Math.random()*0.22;
+    let px=0,py=0.97,pz=0;
+    for(let s=0;s<8;s++){ const nx=px+Math.sin(a)*out/8, nz=pz+Math.cos(a)*out/8, ny=py+0.03-s*s*0.006; sp.push(px,py,pz,nx,ny,nz); px=nx;py=ny;pz=nz; }
+  }
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
+  ear.add(new THREE.LineSegments(sg,new THREE.LineBasicMaterial({color:lin('#d4b26c')})));
+  ear.scale.setScalar(scale);
+  return ear;
+}
+const earAnchors=[];
+[[5,-Math.PI/2+0.55,1.0],[4,Math.PI/2+0.35,0.8]].forEach(([k,az,sc])=>{
+  const holder=new THREE.Group(); holder.position.y=NODE_Y[k]+0.05; holder.rotation.y=az;
+  const pivot=new THREE.Group(); pivot.position.x=stalkR(NODE_Y[k]); pivot.rotation.z=-0.48;
+  const shank=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.03,0.14,8),new THREE.MeshStandardMaterial({color:lin('#7a9442')}));
+  shank.position.y=0.05; pivot.add(shank);
+  const ear=makeEar(sc); ear.position.y=0.1; pivot.add(ear);
+  const a=new THREE.Object3D(); a.position.y=0.9*sc; ear.add(a); earAnchors.push(a);
+  holder.add(pivot); HERO.add(holder);
+});
+// tassel
+const tasselAnchor=new THREE.Object3D(); tasselAnchor.position.set(0,7.35,0); HERO.add(tasselAnchor);
+(function(){
+  const mat=new THREE.MeshStandardMaterial({color:lin('#c8ab6d'),roughness:.8});
+  const main=new THREE.CatmullRomCurve3([V3(0,STALK_H-0.05,0),V3(0.02,7.0,0),V3(0.05,7.45,0.02)]);
+  HERO.add(new THREE.Mesh(new THREE.TubeGeometry(main,16,0.011,6,false),mat));
+  for(let i=0;i<11;i++){
+    const a=i*2.4, y=6.68+i*0.03, len=0.38+Math.random()*0.22;
+    const c=new THREE.CatmullRomCurve3([V3(0,y,0),V3(Math.cos(a)*0.12,y+0.12,Math.sin(a)*0.12),V3(Math.cos(a)*len*0.75,y+0.08,Math.sin(a)*len*0.75),V3(Math.cos(a)*len,y-0.18,Math.sin(a)*len)]);
+    const t=new THREE.Mesh(new THREE.TubeGeometry(c,16,0.007,5,false),mat); t.castShadow=true; HERO.add(t);
+  }
+})();
+// background field
+(function(){
+  const geos=[];
+  for(let k=0;k<7;k++){
+    const g=leafGeo(1.5+0.9*Math.sin(Math.PI*(k+1)/8),0.15,0.85-k*0.06,k*1.9,12,2);
+    const m=new THREE.Matrix4().makeRotationY((k%2?0:Math.PI)+(k*0.4)%0.6);
+    m.multiply(new THREE.Matrix4().makeTranslation(0.06,0.6+k*0.62,0));
+    g.applyMatrix4(m); geos.push(g);
+  }
+  const leaves=mergeGeos(geos);
+  const stalk=new THREE.CylinderGeometry(0.035,0.075,5.4,6); stalk.translate(0,2.7,0);
+  const mats=[];
+  for(let r=-15;r<=15;r++) for(let z=-52;z<=14;z+=1.0){
+    const x=r*1.55+(Math.random()-.5)*0.3, zz=z+(Math.random()-.5)*0.4;
+    if(Math.hypot(x,zz)<3.4) continue;
+    if(zz>4 && Math.abs(x)<9) continue;
+    if(Math.hypot(x,zz)>58) continue;
+    const s=0.85+Math.random()*0.3;
+    mats.push(new THREE.Matrix4().compose(V3(x,0,zz),new THREE.Quaternion().setFromAxisAngle(V3(0,1,0),Math.random()*6.28),V3(s,s*(0.9+Math.random()*0.2),s)));
+  }
+  const il=new THREE.InstancedMesh(leaves,fieldLeafMat,mats.length);
+  const is=new THREE.InstancedMesh(stalk,new THREE.MeshStandardMaterial({color:lin('#738b3e'),roughness:.6}),mats.length);
+  mats.forEach((m,i)=>{il.setMatrixAt(i,m); is.setMatrixAt(i,m);});
+  il.frustumCulled=false; is.frustumCulled=false;
+  plantScene.add(il,is);
+})();
+
+function setSun(elevDeg){
+  const el=elevDeg*Math.PI/180, az=-2.35;
+  SUN.set(Math.cos(el)*Math.sin(az),Math.sin(el),Math.cos(el)*Math.cos(az)).normalize();
+  const k=Math.min(1,Math.max(0,(elevDeg-6)/60));
+  const warm=new THREE.Color(1.0,0.55,0.28), white=new THREE.Color(1.0,0.93,0.82);
+  sunCol.copy(warm).lerp(white,k).multiplyScalar(2.0+0.6*k);
+  skyU.zen.setRGB(0.10+0.08*k,0.20+0.16*k,0.42+0.22*k);
+  skyU.hor.copy(new THREE.Color(0.95,0.62,0.40)).lerp(new THREE.Color(0.70,0.78,0.86),k);
+  fogCol.copy(skyU.hor).multiplyScalar(0.85);
+  leafUniforms.uSky.value.copy(skyU.zen).lerp(skyU.hor,0.4);
+  sunLight.color.copy(sunCol).multiplyScalar(1/2.2);
+  sunLight.intensity=1.6+1.0*k;
+  sunLight.position.copy(SUN).multiplyScalar(25).add(sunLight.target.position);
+  hemi.intensity=0.45+0.4*k;
+}
+let sunElev=24; setSun(sunElev);
+
+const heroLeafPoint = (()=>{ const m=heroLeaves[5]; return {mesh:m, local:null}; })();
+function leafPointWorld(mesh, s){
+  mesh.updateWorldMatrix(true,false);
+  const g=mesh.geometry, segs=34, across=6, i=Math.round(s*segs), j=across/2+1;
+  const idx=i*(across+1)+j;
+  const p=V3(g.attributes.position.getX(idx),g.attributes.position.getY(idx),g.attributes.position.getZ(idx)).applyMatrix4(mesh.matrixWorld);
+  const n=V3(g.attributes.normal.getX(idx),g.attributes.normal.getY(idx),g.attributes.normal.getZ(idx)).transformDirection(mesh.matrixWorld);
+  if(n.dot(camera.position.clone().sub(p))<0) n.negate();
+  return {point:p, normal:n};
+}
+
+/* ================= LAYER 2: KRANZ CROSS-SECTION ================= */
+cellScene.background = lin('#08120e');
+cellScene.fog = new THREE.Fog(lin('#08120e'), 18, 60);
+cellScene.add(new THREE.HemisphereLight(0xdcefe2, 0x14231b, 0.95));
+const key=new THREE.DirectionalLight(0xfff6e8,1.05); key.position.set(4,6,9); cellScene.add(key);
+const rim=new THREE.DirectionalLight(0x88c8ff,0.4); rim.position.set(-6,-3,-4); cellScene.add(rim);
+
+const SECTION = new THREE.Group(); cellScene.add(SECTION);
+const gEpi=new THREE.Group(), gMeso=new THREE.Group(), gBS=new THREE.Group(), gVasc=new THREE.Group();
+SECTION.add(gEpi,gMeso,gBS,gVasc);
+const D=3.2;
+const unitCyl=new THREE.CylinderGeometry(1,1,D,28,1,true); unitCyl.rotateX(Math.PI/2); unitCyl.translate(0,0,-D/2);
+const discCache={}, ringCache={};
+const disc=r=>discCache[r]||(discCache[r]=new THREE.CircleGeometry(r,32));
+const ring=r=>ringCache[r]||(ringCache[r]=new THREE.RingGeometry(r,1,40,1));
+const std=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:lin(c),roughness:.55},o));
+const MATS={
+  meso:{side:std('#3f7f33'),cap:std('#7fbf5f',{emissive:lin('#0d2208')}),wall:std('#e1ecc8',{roughness:.7}),vac:std('#b8d99c',{roughness:.3,transparent:true,opacity:.75}),inner:0.91},
+  bs:{side:std('#2a5f27'),cap:std('#4f8f3d',{emissive:lin('#081a06')}),wall:std('#a3864a',{roughness:.65}),inner:0.83},
+  xylem:{side:std('#8a5a44'),cap:std('#14201b',{roughness:.9}),wall:std('#cf9271',{roughness:.6}),inner:0.62},
+  proto:{side:std('#8a5a44'),cap:std('#14201b',{roughness:.9}),wall:std('#d9a383'),inner:0.55},
+  phloem:{side:std('#55708a'),cap:std('#a9bfd6',{roughness:.4}),wall:std('#e2ecf5'),inner:0.86},
+  guard:{side:std('#5f8a45'),cap:std('#9ccb7a'),wall:std('#e4ecd2'),inner:0.6},
+  subs:{side:std('#87a970'),cap:std('#c8deb0'),wall:std('#eef3e1'),inner:0.9}
+};
+const shared=[]; Object.values(MATS).forEach(m=>['side','cap','wall','vac'].forEach(k=>{ if(m[k]){ m[k].userData.base=m[k].color.clone(); shared.push(m[k]); }}));
+const pickables=[];
+let zj=0;
+function cell(parent,x,y,r,mats,kind,o={}){
+  const g=new THREE.Group(); g.position.set(x,y,(zj++%7)*0.0004); g.rotation.z=o.rot||0; g.scale.set(r*(o.sx||1),r*(o.sy||1),1);
+  const side=new THREE.Mesh(unitCyl,mats.side), cap=new THREE.Mesh(disc(mats.inner),mats.cap), wall=new THREE.Mesh(ring(mats.inner),mats.wall);
+  cap.position.z=0.002; wall.position.z=0.004;
+  [side,cap,wall].forEach(m=>{m.userData.kind=kind; pickables.push(m); g.add(m);});
+  if(mats.vac){ const v=new THREE.Mesh(disc(1),mats.vac); v.scale.set(0.5,0.42,1); v.position.set(0.06,0.04,0.003); g.add(v); }
+  parent.add(g); return g;
+}
+function cloneMats(m){ const c={inner:m.inner}; ['side','cap','wall','vac'].forEach(k=>{ if(m[k]) c[k]=m[k].clone(); }); return c; }
+const chloroM=[], chloroBS=[];
+function addChloros(list,x,y,r,rot,sx,sy,n,rad,spreadCenter,spread,size){
+  for(let i=0;i<n;i++){
+    const a = spreadCenter==null ? (i/n)*Math.PI*2+Math.random()*0.3 : spreadCenter+(i/(n-1)-0.5)*spread;
+    const rr = rad*(0.9+Math.random()*0.15) * (i%2 && spreadCenter!=null ? 0.72 : 1);
+    let lx=Math.cos(a)*rr*sx*r, ly=Math.sin(a)*rr*sy*r;
+    const c=Math.cos(rot), s=Math.sin(rot);
+    list.push({x:x+lx*c-ly*s, y:y+lx*s+ly*c, a:a+rot+Math.PI/2, size});
+  }
+}
+const BUNDLES=[-5.7,-1.9,1.9,5.7];
+const TH=210*Math.PI/180;
+const focus={};
+BUNDLES.forEach(bx=>{
+  // bundle sheath wreath
+  const nB=9;
+  for(let i=0;i<nB;i++){
+    const a=TH+i*Math.PI*2/nB, x=bx+Math.cos(a)*0.75, y=Math.sin(a)*0.75;
+    const isF = bx===1.9 && i===0;
+    const mats = isF ? cloneMats(MATS.bs) : MATS.bs;
+    const g=cell(gBS,x,y,0.262,mats,'bundle',{rot:a,sx:1.06,sy:0.97});
+    addChloros(chloroBS,x,y,0.262,a,1.06,0.97,13,0.66,0,2.3,[0.07,0.034,0.022]);
+    if(isF){ focus.bs={x,y,g}; }
+  }
+  // mesophyll radiating wreath
+  const nM=15;
+  for(let i=0;i<nM;i++){
+    const a=TH+i*Math.PI*2/nM, x=bx+Math.cos(a)*1.3, y=Math.sin(a)*1.3;
+    const isF = bx===1.9 && i===0;
+    const mats = isF ? cloneMats(MATS.meso) : MATS.meso;
+    const g=cell(gMeso,x,y,0.272,mats,'mesophyll',{rot:a,sx:1.09,sy:0.94});
+    addChloros(chloroM,x,y,0.272,a,1.09,0.94,10,0.76,null,0,[0.048,0.028,0.02]);
+    if(isF){ focus.m={x,y,g}; }
+  }
+  // vascular tissue
+  [[-0.2,0.12],[0.2,0.12]].forEach(([dx,dy])=>cell(gVasc,bx+dx,dy,0.11,MATS.xylem,'xylem'));
+  cell(gVasc,bx,0.31,0.055,MATS.proto,'xylem');
+  cell(gVasc,bx,-0.24,0.068,MATS.phloem,'phloem');
+  for(let i=0;i<7;i++){ const a=i/7*Math.PI*2; cell(gVasc,bx+Math.cos(a)*0.13,-0.24+Math.sin(a)*0.1,0.045+((i*7)%3)*0.007,MATS.phloem,'phloem'); }
+  [[-0.32,-0.05],[0.32,-0.05],[0,0.03],[-0.12,-0.42],[0.12,-0.42]].forEach(([dx,dy])=>cell(gVasc,bx+dx,dy,0.06,MATS.subs,'parenchyma'));
+});
+// mesophyll between veins
+[[0,0.95],[0,0.15],[-3.8,0.95],[-3.8,0.15],[-3.8,-0.75],[3.8,0.95],[3.8,0.15],[3.8,-0.75]].forEach(([x,y])=>{
+  cell(gMeso,x,y,0.28,MATS.meso,'mesophyll',{rot:Math.random()*3,sx:1.05,sy:0.95});
+  addChloros(chloroM,x,y,0.28,0,1.05,0.95,10,0.76,null,0,[0.048,0.028,0.02]);
+});
+// chloroplast instancing
+function buildChloros(list,group,color){
+  const geo=new THREE.SphereGeometry(1,10,8), mat=std(color,{roughness:.4});
+  mat.userData.base=mat.color.clone(); shared.push(mat);
+  const im=new THREE.InstancedMesh(geo,mat,list.length); const d=new THREE.Object3D();
+  list.forEach((c,i)=>{ d.position.set(c.x,c.y,0.012); d.rotation.set(0,0,c.a); d.scale.set(c.size[0],c.size[1],c.size[2]); d.updateMatrix(); im.setMatrixAt(i,d.matrix); });
+  group.add(im);
+}
+buildChloros(chloroM,gMeso,'#2f7a2c'); buildChloros(chloroBS,gBS,'#1d5a1e');
+// epidermis
+(function(){
+  const epiSide=std('#a7c98b'), bull=std('#cfe3b4',{roughness:.35}), cut=std('#eef2dc',{roughness:.25,metalness:0});
+  [epiSide,bull,cut].forEach(m=>{m.userData.base=m.color.clone(); shared.push(m);});
+  const box=(w,h)=>{ const g=new THREE.BoxGeometry(w,h,D); g.translate(0,0,-D/2); return g; };
+  const bulliX=[0,-3.8,3.8];
+  for(let x=-7.25;x<=7.26;x+=0.3){
+    if(!bulliX.some(b=>Math.abs(x-b)<0.38)){ const m=new THREE.Mesh(box(0.27,0.15),epiSide); m.position.set(x,1.70,0); m.userData.kind='epidermis'; pickables.push(m); gEpi.add(m); }
+    if(Math.abs(x)>0.4){ const m=new THREE.Mesh(box(0.27,0.15),epiSide); m.position.set(x,-1.70,0); m.userData.kind='epidermis'; pickables.push(m); gEpi.add(m); }
+  }
+  bulliX.forEach(b=>[[-0.17,0.28],[0,0.36],[0.17,0.28]].forEach(([dx,h])=>{ const m=new THREE.Mesh(box(0.15,h),bull); m.position.set(b+dx,1.78-h/2,0); m.userData.kind='bulliform'; pickables.push(m); gEpi.add(m); }));
+  const c1=new THREE.Mesh(box(14.8,0.03),cut); c1.position.set(0,1.79,0); gEpi.add(c1);
+  [[-4.0,6.8],[4.0,6.8]].forEach(([cx,w])=>{ const c=new THREE.Mesh(box(w,0.03),cut); c.position.set(cx,-1.79,0); gEpi.add(c); });
+  cell(gEpi,-0.075,-1.71,0.062,MATS.guard,'stoma',{sy:1.1}); cell(gEpi,0.075,-1.71,0.062,MATS.guard,'stoma',{sy:1.1});
+  cell(gEpi,-0.25,-1.70,0.09,MATS.subs,'stoma',{sy:0.85}); cell(gEpi,0.25,-1.70,0.09,MATS.subs,'stoma',{sy:0.85});
+})();
+// focus highlight rings
+const focusRings=[];
+[focus.m.g, focus.bs.g].forEach(g=>{ const r=new THREE.Mesh(new THREE.RingGeometry(1.0,1.12,64),new THREE.MeshBasicMaterial({color:lin('#e8b84a'),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); r.position.z=0.008; g.add(r); focusRings.push(r); });
+
+// label anchors in section
+function anchor(parent,x,y,z){ const o=new THREE.Object3D(); o.position.set(x,y,z||0.03); parent.add(o); return o; }
+
+/* ================= LAYER 3: BIOCHEMICAL FLOW ================= */
+const MOL={
+  co2:{hex:'#d3dde0',name:'CO₂'}, pep:{hex:'#8be063',name:'PEP'}, oaa:{hex:'#ff9b5e',name:'OAA'}, mal:{hex:'#c697ff',name:'Malate'},
+  pyr:{hex:'#52d6e6',name:'Pyruvate'}, atp:{hex:'#ffd54f',name:'ATP'}, adp:{hex:'#c0913c',name:'ADP + Pi'}, amp:{hex:'#c0913c',name:'AMP + PPi'},
+  nadph:{hex:'#71abff',name:'NADPH'}, glc:{hex:'#fff1bd',name:'Glucose'}
+};
+Object.values(MOL).forEach(m=>m.c=new THREE.Color(m.hex));
+const Z=0.05;
+const P2=(x,y)=>V3(x,y,Z);
+const Mc=V3(focus.m.x,focus.m.y,Z), Bc=V3(focus.bs.x,focus.bs.y,Z);
+const u=V3(Math.cos(TH),Math.sin(TH),0), tg=V3(-Math.sin(TH),Math.cos(TH),0);
+const contact=V3(1.9,0,Z).add(u.clone().multiplyScalar(1.02));
+const C1=contact.clone().add(tg.clone().multiplyScalar(0.07)), C2=contact.clone().add(tg.clone().multiplyScalar(-0.07));
+const NA=Mc.clone().add(V3(-0.10,-0.09,0)), NB=Mc.clone().add(V3(0.12,-0.08,0)), NG=Mc.clone().add(V3(0.03,0.13,0));
+const ND=Bc.clone().add(V3(-0.09,-0.08,0)), NE=Bc.clone().add(V3(0.07,0.06,0)), NP=P2(1.88,-0.25);
+const ER=0.075;
+const ePt=(a)=>NE.clone().add(V3(Math.cos(a)*ER,Math.sin(a)*ER,0));
+const curve=pts=>new THREE.CatmullRomCurve3(pts,false,'centripetal');
+const PATHS={
+  co2in:{mol:'co2',c:curve([P2(0,-2.15),P2(0,-1.74),P2(0.03,-1.35),P2(0.30,-1.06),P2(0.52,-0.88),NA])},
+  oaa:{mol:'oaa',c:curve([NA,P2(0.78,-0.80),NB])},
+  malA:{mol:'mal',c:curve([NB,P2(0.99,-0.67),C1])},
+  malT:{mol:'mal',c:curve([C1,P2(1.11,-0.50),ND])},
+  co2bs:{mol:'co2',c:curve([ND,P2(1.19,-0.39),ePt(Math.PI)])},
+  nadphBS:{mol:'nadph',c:curve([ND,P2(1.22,-0.46),ePt(-2.2)])},
+  calvin:{mol:'co2',c:new THREE.CatmullRomCurve3(Array.from({length:20},(_,i)=>ePt(Math.PI-i/20*Math.PI*2)),true)},
+  atpBS:{mol:'atp',c:curve([P2(1.23,-0.60),P2(1.31,-0.49),ePt(-Math.PI/2)])},
+  adpBS:{mol:'adp',c:curve([ePt(-0.3),P2(1.45,-0.42),P2(1.43,-0.56)])},
+  glc:{mol:'glc',c:curve([ePt(0.6),P2(1.48,-0.24),P2(1.64,-0.24),NP])},
+  pyrOut:{mol:'pyr',c:curve([ND,P2(1.07,-0.43),C2])},
+  pyrIn:{mol:'pyr',c:curve([C2,P2(0.90,-0.47),NG])},
+  pepRet:{mol:'pep',c:curve([NG,P2(0.70,-0.62),NA])},
+  nadphM:{mol:'nadph',c:curve([P2(0.97,-0.86),P2(0.95,-0.79),NB])},
+  atpM:{mol:'atp',c:curve([P2(0.66,-0.45),P2(0.73,-0.47),NG])},
+  ampM:{mol:'amp',c:curve([NG,P2(0.85,-0.45),P2(0.89,-0.42)])}
+};
+const PW=new THREE.Group(); PW.visible=false; cellScene.add(PW);
+Object.entries(PATHS).forEach(([k,p])=>{
+  p.len=p.c.getLength();
+  const mat=new THREE.MeshBasicMaterial({color:lin(MOL[p.mol].hex),transparent:true,opacity:0.16,blending:THREE.AdditiveBlending,depthWrite:false});
+  p.tube=new THREE.Mesh(new THREE.TubeGeometry(p.c,Math.max(16,Math.round(p.len*120)),k==='calvin'?0.006:0.0042,6,k==='calvin'),mat);
+  p.target=0.16; PW.add(p.tube);
+});
+const STEPS=[
+  {n:1,key:'PEPC',color:'#d3dde0',node:NA,off:[-150,60],title:'CO₂ captured by PEP carboxylase',where:'Mesophyll cytosol',
+   eq:'HCO₃⁻ + PEP → OAA + Pi',enzyme:'PEP carboxylase (PEPC), after carbonic anhydrase',
+   text:'CO₂ diffuses in through the stoma and air spaces. Carbonic anhydrase turns it into bicarbonate, which PEPC attaches to PEP. PEPC does not react with O₂, so this first fixation loses no carbon to photorespiration.',
+   bursts:[['co2in','co2',8,0],['pepRet','pep',3,0],['oaa','oaa',5,2.4]]},
+  {n:2,key:'MDH',color:'#ff9b5e',node:NB,off:[-40,125],title:'OAA reduced to malate',where:'Mesophyll chloroplast',
+   eq:'OAA + NADPH → malate + NADP⁺',enzyme:'NADP-malate dehydrogenase',
+   text:'OAA moves into the mesophyll chloroplast and is reduced with NADPH from the light reactions. Malate is the stable four-carbon carrier maize uses to ship fixed carbon inward.',
+   bursts:[['oaa','oaa',5,0],['nadphM','nadph',3,0.2],['malA','mal',6,0.9]]},
+  {n:3,key:'Plasmodesmata',color:'#c697ff',node:C1,off:[80,140],title:'Malate crosses into the bundle sheath',where:'Shared cell wall',
+   eq:'malate (mesophyll) → malate (bundle sheath)',enzyme:'Diffusion through plasmodesmata',
+   text:'Malate diffuses down its concentration gradient through plasmodesmata in the shared wall. The bundle-sheath wall carries a suberized layer that slows CO₂ from leaking back out.',
+   bursts:[['malA','mal',4,0],['malT','mal',7,0.4]]},
+  {n:4,key:'NADP-ME',color:'#c697ff',node:ND,off:[175,75],title:'Malate releases its CO₂',where:'Bundle sheath chloroplast',
+   eq:'malate + NADP⁺ → pyruvate + CO₂ + NADPH',enzyme:'NADP-malic enzyme (NADP-ME)',
+   text:'Decarboxylation frees CO₂ right beside Rubisco and supplies NADPH for the Calvin cycle. CO₂ in the bundle sheath builds to several times the level in outside air.',
+   bursts:[['malT','mal',3,0],['co2bs','co2',7,0.7],['nadphBS','nadph',4,0.8],['pyrOut','pyr',5,0.9]]},
+  {n:5,key:'Calvin cycle',color:'#ffd54f',node:NE,off:[175,-45],title:'Rubisco fixes the CO₂ a second time',where:'Bundle sheath chloroplast',
+   eq:'CO₂ + RuBP → 2 × 3-PGA',enzyme:'Rubisco, then the Calvin cycle (3 ATP + 2 NADPH per CO₂)',
+   text:'With CO₂ concentrated around Rubisco, its wasteful reaction with O₂ is largely suppressed. ATP is spent to ADP + Pi as 3-PGA is reduced to triose phosphate and RuBP is regenerated.',
+   bursts:[['co2bs','co2',3,0],['calvin','co2',7,0.3,2],['atpBS','atp',6,0.2],['nadphBS','nadph',3,0.4],['adpBS','adp',6,1.4]]},
+  {n:6,key:'Sugar → phloem',color:'#fff1bd',node:NP,off:[40,-115],title:'Sugar exported to the phloem',where:'Bundle sheath → phloem',
+   eq:'6 CO₂ fixed → 1 C₆H₁₂O₆ equivalent',enzyme:'Triose phosphate → sucrose',
+   text:'Triose phosphate leaves the cycle and is built into sugar, which the phloem carries to the ear and roots. Shown here as one direct route; in maize much of the sucrose is actually assembled in mesophyll cytosol before phloem loading.',
+   bursts:[['calvin','glc',3,0,1],['glc','glc',8,0.8]]},
+  {n:7,key:'PPDK',color:'#52d6e6',node:NG,off:[-160,-55],title:'Pyruvate returns and PEP is rebuilt',where:'Mesophyll chloroplast',
+   eq:'pyruvate + ATP + Pi → PEP + AMP + PPi',enzyme:'Pyruvate, phosphate dikinase (PPDK)',
+   text:'Pyruvate diffuses back to the mesophyll. PPDK rebuilds PEP by splitting ATP all the way to AMP, which costs two ATP equivalents. That is the price of the CO₂ pump, and the loop is ready to fix again.',
+   bursts:[['pyrOut','pyr',3,0],['pyrIn','pyr',5,0.5],['atpM','atp',4,0.6],['ampM','amp',4,1.7],['pepRet','pep',5,1.9]]}
+];
+const nodeDots=STEPS.map(s=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(0.014,16,12),new THREE.MeshBasicMaterial({color:lin(s.color)})); m.position.copy(s.node); PW.add(m); return m; });
+const calvinTorus=new THREE.Mesh(new THREE.TorusGeometry(ER,0.004,8,64),new THREE.MeshBasicMaterial({color:lin('#ffd54f'),transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false}));
+calvinTorus.position.copy(NE); PW.add(calvinTorus);
+
+// particle system
+const MAXP=1400;
+const pPos=new Float32Array(MAXP*3), pCol=new Float32Array(MAXP*3), pSize=new Float32Array(MAXP), pAlpha=new Float32Array(MAXP);
+const pGeo=new THREE.BufferGeometry();
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+pGeo.setAttribute('aColor',new THREE.BufferAttribute(pCol,3));
+pGeo.setAttribute('aSize',new THREE.BufferAttribute(pSize,1));
+pGeo.setAttribute('aAlpha',new THREE.BufferAttribute(pAlpha,1));
+const pMat=new THREE.ShaderMaterial({
+  uniforms:{uScale:{value:400}},
+  vertexShader:`attribute vec3 aColor; attribute float aSize; attribute float aAlpha; uniform float uScale; varying vec3 vC; varying float vA;
+    void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*mv; gl_PointSize=clamp(aSize*uScale/(-mv.z),1.0,64.0); vC=aColor; vA=aAlpha; }`,
+  fragmentShader:`varying vec3 vC; varying float vA;
+    void main(){ vec2 d=gl_PointCoord-0.5; float r=length(d)*2.0; if(r>1.0) discard;
+      float glow=exp(-r*r*3.5); float core=smoothstep(0.42,0.0,r);
+      gl_FragColor=vec4(vC*glow*1.15 + vec3(1.0)*core*0.55, vA*(glow*0.95+core*0.35)); }`,
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
+});
+const points=new THREE.Points(pGeo,pMat); points.frustumCulled=false; PW.add(points);
+const pool=Array.from({length:MAXP},()=>({on:false}));
+const tags=[];
+function spawn(pathKey,mol,o){
+  const p=pool.find(q=>!q.on); if(!p) return null;
+  const path=PATHS[pathKey];
+  Object.assign(p,{on:true,path,t:0,lap:0,delay:o.delay||0,dur:o.dur||Math.min(3.4,Math.max(0.9,path.len/0.32)),
+    col:MOL[mol].c,size:o.size||0.03,alpha:o.alpha==null?1:o.alpha,loops:o.loops||0,closed:pathKey==='calvin',
+    ox:(Math.random()-.5)*0.028,oy:(Math.random()-.5)*0.028,tag:null});
+  return p;
+}
+function burst(pathKey,mol,n,delay,loops,withTag){
+  for(let k=0;k<n;k++){
+    const p=spawn(pathKey,mol,{delay:delay+k*0.14,size:0.034,loops:loops||0});
+    if(p && k===0 && withTag){
+      const el=document.createElement('div'); el.className='mtag'; el.textContent=MOL[mol].name; el.style.color=MOL[mol].hex; el.hidden=true;
+      labelLayer.appendChild(el); p.tag=el; tags.push(p);
+    }
+  }
+}
+const tmpV=new THREE.Vector3();
+function updateParticles(dt){
+  for(let i=0;i<MAXP;i++){
+    const p=pool[i];
+    if(!p.on){ pAlpha[i]=0; continue; }
+    if(p.delay>0){ p.delay-=dt; pAlpha[i]=0; continue; }
+    p.t+=dt/p.dur;
+    if(p.t>=1){ if(p.loops>0){ p.t-=1; p.loops--; p.lap++; } else { p.on=false; pAlpha[i]=0; if(p.tag){ p.tag.remove(); p.tag=null; } continue; } }
+    p.path.c.getPointAt(p.t,tmpV);
+    const env=p.closed?1:Math.sin(Math.PI*p.t);
+    pPos[i*3]=tmpV.x+p.ox*env; pPos[i*3+1]=tmpV.y+p.oy*env; pPos[i*3+2]=tmpV.z;
+    pCol[i*3]=p.col.r; pCol[i*3+1]=p.col.g; pCol[i*3+2]=p.col.b;
+    pSize[i]=p.size;
+    let a=p.alpha;
+    if(p.lap===0) a*=Math.min(1,p.t*7);
+    if(p.loops===0) a*=Math.min(1,(1-p.t)*7);
+    pAlpha[i]=a;
+    if(p.tag) p.tag._pos=V3(pPos[i*3],pPos[i*3+1],pPos[i*3+2]);
+  }
+  pGeo.attributes.position.needsUpdate=true; pGeo.attributes.aColor.needsUpdate=true;
+  pGeo.attributes.aSize.needsUpdate=true; pGeo.attributes.aAlpha.needsUpdate=true;
+}
+const AMBIENT=[['co2in','co2'],['oaa','oaa'],['malA','mal'],['malT','mal'],['co2bs','co2'],['calvin','co2'],['glc','glc'],['pyrOut','pyr'],['pyrIn','pyr'],['pepRet','pep'],['atpBS','atp'],['adpBS','adp']];
+let ambI=0, ambT=0;
+function ambient(dt){
+  ambT+=dt; if(ambT<0.16) return; ambT=0;
+  const [k,m]=AMBIENT[ambI++%AMBIENT.length];
+  spawn(k,m,{size:0.022,alpha:0.5,loops:k==='calvin'?1:0});
+}
+
+/* ================= LABELS ================= */
+const labelLayer=document.getElementById('labels'), svg=document.getElementById('leaders');
+const SVGNS='http://www.w3.org/2000/svg';
+const labels=[];
+function addLabel({text,sub,anchor,pos,modes,off=[0,-50],node,step}){
+  const el=document.createElement(node?'button':'div');
+  el.className=node?'node':'lbl';
+  if(node){ el.type='button'; el.style.setProperty('--nc',step.color); el.innerHTML=`<b>${step.n}</b>${text}`; el.setAttribute('aria-label',`Step ${step.n}: ${step.title}`); el.addEventListener('click',e=>{e.stopPropagation(); stopPlay(); runStep(step.n-1);}); }
+  else el.innerHTML=text+(sub?`<small>${sub}</small>`:'');
+  el.hidden=true; labelLayer.appendChild(el);
+  const line=document.createElementNS(SVGNS,'line'); line.setAttribute('stroke','rgba(225,238,222,.5)'); line.setAttribute('stroke-width','1');
+  const dot=document.createElementNS(SVGNS,'circle'); dot.setAttribute('r','2.6'); dot.setAttribute('fill', node?step.color:'#e6eee2');
+  svg.append(line,dot);
+  const L={el,line,dot,anchor,pos,modes,off,node,step,w:0,h:0}; labels.push(L); return L;
+}
+// plant labels
+addLabel({text:'Tassel',sub:'male flowers, sheds pollen',anchor:tasselAnchor,modes:['plant'],off:[90,-30]});
+addLabel({text:'Ear with silks',sub:'female flower, becomes the cob',anchor:earAnchors[0],modes:['plant'],off:[110,40]});
+addLabel({text:'Leaf blade',sub:'parallel veins · click to section',fn:null,anchor:(()=>{const a=new THREE.Object3D(); heroLeaves[7].add(a); const g=heroLeaves[7].geometry, idx=Math.round(0.6*34)*7+3; a.position.set(g.attributes.position.getX(idx),g.attributes.position.getY(idx),g.attributes.position.getZ(idx)); return a;})(),modes:['plant'],off:[-120,-40]});
+addLabel({text:'Brace roots',sub:'prop roots from lower nodes',anchor:(()=>{const a=new THREE.Object3D(); a.position.set(0.3,0.08,0.15); HERO.add(a); return a;})(),modes:['plant'],off:[110,10]});
+// kranz labels
+addLabel({text:'Upper epidermis',sub:'waxy cuticle',anchor:anchor(gEpi,-5.0,1.79),modes:['kranz'],off:[-30,-55]});
+addLabel({text:'Bulliform cells',sub:'roll the leaf in drought',anchor:anchor(gEpi,-3.8,1.79),modes:['kranz'],off:[40,-75]});
+addLabel({text:'Mesophyll cell',sub:'PEP carboxylase',anchor:anchor(gMeso,-1.9-0.966,0.87),modes:['kranz'],off:[-70,-110]});
+addLabel({text:'Bundle sheath cell',sub:'Rubisco · Calvin cycle',anchor:anchor(gBS,-1.9-0.48,0.57),modes:['kranz'],off:[-150,10]});
+addLabel({text:'Xylem vessel',sub:'water up',anchor:anchor(gVasc,-1.7,0.12),modes:['kranz'],off:[60,-95]});
+addLabel({text:'Phloem',sub:'sugar out',anchor:anchor(gVasc,-1.9,-0.24),modes:['kranz'],off:[70,95]});
+addLabel({text:'Stoma',sub:'CO₂ enters here',anchor:anchor(gEpi,0,-1.72),modes:['kranz'],off:[0,60]});
+addLabel({text:'Substomatal cavity',anchor:anchor(cellScene,0,-1.25),modes:['kranz'],off:[-110,40]});
+addLabel({text:'Lower epidermis',anchor:anchor(gEpi,-5.0,-1.79),modes:['kranz'],off:[-20,55]});
+addLabel({text:'Kranz wreath',sub:'two concentric rings',anchor:anchor(gBS,5.7,0.75),modes:['kranz'],off:[30,-120]});
+// pathway labels
+addLabel({text:'Mesophyll cell',anchor:anchor(cellScene,Mc.x,Mc.y+0.27,Z),modes:['pathway'],off:[-40,-130]});
+addLabel({text:'Bundle sheath cell',anchor:anchor(cellScene,Bc.x,Bc.y+0.26,Z),modes:['pathway'],off:[40,-150]});
+addLabel({text:'Stoma',anchor:anchor(cellScene,0,-1.72,Z),modes:['pathway'],off:[-70,0]});
+const nodeLabels=STEPS.map(s=>addLabel({text:s.key,node:true,step:s,anchor:anchor(cellScene,s.node.x,s.node.y,Z),modes:['pathway'],off:s.off}));
+
+let VW=innerWidth, VH=innerHeight;
+function updateLabels(){
+  const scale = VW<600?0.55:(VW<900?0.8:1);
+  const sceneKey = activeScene===plantScene?'plant':'cell';
+  labels.forEach(L=>{
+    const inMode = L.modes.includes(mode) && !transitioning && (sceneKey==='plant')===(mode==='plant');
+    if(!inMode){ if(!L.el.hidden){ L.el.hidden=true; L.line.setAttribute('visibility','hidden'); L.dot.setAttribute('visibility','hidden'); } return; }
+    L.anchor.getWorldPosition(tmpV); tmpV.project(camera);
+    if(tmpV.z>1 || Math.abs(tmpV.x)>1.3 || Math.abs(tmpV.y)>1.3){ L.el.hidden=true; L.line.setAttribute('visibility','hidden'); L.dot.setAttribute('visibility','hidden'); return; }
+    const x=(tmpV.x*0.5+0.5)*VW, y=(-tmpV.y*0.5+0.5)*VH;
+    const lx=x+L.off[0]*scale, ly=y+L.off[1]*scale;
+    L.el.hidden=false;
+    L.el.style.transform=`translate(${lx}px,${ly}px) translate(-50%,-50%)`;
+    L.line.setAttribute('visibility','visible'); L.dot.setAttribute('visibility','visible');
+    L.line.setAttribute('x1',x); L.line.setAttribute('y1',y); L.line.setAttribute('x2',lx); L.line.setAttribute('y2',ly);
+    L.dot.setAttribute('cx',x); L.dot.setAttribute('cy',y);
+  });
+  for(let i=tags.length-1;i>=0;i--){
+    const p=tags[i];
+    if(!p.tag){ tags.splice(i,1); continue; }
+    if(!p._pos && !p.tag._pos){ continue; }
+    if(mode!=='pathway' || p.delay>0 || !p.tag._pos){ p.tag.hidden=true; continue; }
+    tmpV.copy(p.tag._pos).project(camera);
+    const x=(tmpV.x*0.5+0.5)*VW, y=(-tmpV.y*0.5+0.5)*VH;
+    p.tag.hidden=false; p.tag.style.transform=`translate(${x+10}px,${y-14}px)`;
+  }
+}
+
+/* ================= CAMERA, LAYOUT, TRANSITIONS ================= */
+const panel=document.getElementById('panel');
+let eff={w:innerWidth,h:innerHeight};
+function layout(){
+  VW=innerWidth; VH=innerHeight;
+  renderer.setSize(VW,VH,false);
+  camera.aspect=VW/VH;
+  const r=panel.getBoundingClientRect();
+  if(VW>=760){ eff={w:Math.max(200,r.left-12),h:VH}; camera.setViewOffset(VW,VH,(VW-eff.w)/2,0,VW,VH); }
+  else { eff={w:VW,h:Math.max(200,r.top-8)}; camera.setViewOffset(VW,VH,0,(VH-eff.h)/2,VW,VH); }
+  camera.updateProjectionMatrix();
+  pMat.uniforms.uScale.value = VH*PR/(2*Math.tan(camera.fov*Math.PI/360));
+}
+function fitDist(w,h){ const vh=2*Math.tan(camera.fov*Math.PI/360); return Math.max(h*VH/(vh*eff.h), w*VH/(vh*eff.w)); }
+const VIEWS={
+  plant:()=>{ const t=V3(0,3.5,0), d=V3(0.42,0.1,1).normalize(); return {t, p:t.clone().add(d.multiplyScalar(fitDist(5.4,7.8)))}; },
+  kranz:()=>{ const t=V3(0,0,-0.4), d=V3(0.3,0.26,1).normalize(); return {t, p:t.clone().add(d.multiplyScalar(fitDist(15.2,4.6)))}; },
+  pathway:()=>{ const t=V3(1.2,-0.78,0), d=V3(0.07,-0.06,1).normalize(); return {t, p:t.clone().add(d.multiplyScalar(fitDist(1.75,1.55)))}; }
+};
+let tween=null;
+const ease=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+function flyTo(p,t,dur){
+  return new Promise(res=>{ tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:p.clone(),t1:t.clone(),s:performance.now(),d:reduce?60:(dur||1.6)*1000,res}; controls.enabled=false; });
+}
+function stepTween(){
+  if(!tween) return;
+  const k=Math.min(1,(performance.now()-tween.s)/tween.d), e=ease(k);
+  camera.position.lerpVectors(tween.p0,tween.p1,e); controls.target.lerpVectors(tween.t0,tween.t1,e); camera.lookAt(controls.target);
+  if(k>=1){ const r=tween.res; tween=null; controls.enabled=true; r(); }
+}
+const fadeEl=document.getElementById('fade'), fadeText=document.getElementById('fadeText');
+const wait=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+async function fade(on,text){ if(text) fadeText.textContent=text; fadeEl.classList.toggle('on',on); await wait(470); }
+function setControlsFor(m){
+  if(m==='plant'){ controls.minDistance=0.5; controls.maxDistance=34; controls.maxPolarAngle=1.5; }
+  else { controls.minDistance=0.35; controls.maxDistance=40; controls.maxPolarAngle=Math.PI; }
+}
+
+let mode='plant', transitioning=false, explode=0, explodeTarget=0, dim=1, dimTarget=1;
+let lastLeafHit=null;
+async function go(next,opts={}){
+  if(transitioning || next===mode) return;
+  transitioning=true; stopPlay();
+  setTabs(next);
+  if(mode==='plant'){
+    const hit=opts.hit||leafPointWorld(heroLeaves[5],0.55);
+    lastLeafHit=hit;
+    await flyTo(hit.point.clone().add(hit.normal.clone().multiplyScalar(0.22)),hit.point,1.35);
+    await fade(true,'Cutting a transverse section…');
+    activeScene=cellScene; mode=next; renderPanel(); layout(); applyMode();
+    camera.position.set(10,15,36); controls.target.set(0,0,-1.6); camera.lookAt(controls.target);
+    await fade(false);
+    const v=VIEWS.kranz(); await flyTo(v.p,v.t,2.0);
+    if(next==='pathway'){ const v2=VIEWS.pathway(); await flyTo(v2.p,v2.t,1.6); }
+  } else if(next==='plant'){
+    const v=VIEWS.kranz(); await flyTo(v.p.clone().multiplyScalar(2.2),v.t,1.0);
+    await fade(true,'Back to the field…');
+    activeScene=plantScene; mode=next; renderPanel(); layout(); applyMode();
+    const hit=lastLeafHit||leafPointWorld(heroLeaves[5],0.55);
+    camera.position.copy(hit.point.clone().add(hit.normal.clone().multiplyScalar(0.3))); controls.target.copy(hit.point); camera.lookAt(hit.point);
+    await fade(false);
+    const vp=VIEWS.plant(); await flyTo(vp.p,vp.t,1.8);
+  } else {
+    mode=next; renderPanel(); layout(); applyMode();
+    const v=VIEWS[next](); await flyTo(v.p,v.t,1.5);
+  }
+  transitioning=false;
+  if(mode==='pathway' && activeStep<0) runStep(0);
+}
+function applyMode(){
+  setControlsFor(mode);
+  PW.visible = mode==='pathway';
+  explodeTarget = mode==='kranz' ? explodeSetting : 0;
+  dimTarget = mode==='pathway' ? 0.32 : 1;
+  focusRings.forEach(r=>r.material.opacity=0);
+  if(mode==='pathway'){ [gEpi,gMeso,gBS,gVasc].forEach(g=>g.visible=true); }
+  else if(mode==='kranz'){ gEpi.visible=layerVis.epi; gMeso.visible=layerVis.meso; gBS.visible=layerVis.bs; gVasc.visible=layerVis.vasc; }
+  document.getElementById('hint').textContent = mode==='plant' ? 'Drag to orbit · click a leaf to section it' : mode==='kranz' ? 'Drag to orbit · click a cell to identify it' : 'Click a numbered node to run that reaction';
+}
+function setTabs(m){ document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.mode===m))); }
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.mode)));
+
+/* ================= PANEL ================= */
+let explodeSetting=0, windSetting=1, selectedTissue=null, activeStep=-1, playing=false, playTimer=null;
+const layerVis={epi:true,meso:true,bs:true,vasc:true};
+const TISSUE={
+  mesophyll:['Mesophyll cell','Outer wreath','Loosely packed cells radiating around each bundle sheath. In maize they hold PEP carboxylase in the cytosol and grana-rich chloroplasts, but almost no Rubisco. No mesophyll cell sits more than about two cells from a bundle sheath.'],
+  bundle:['Bundle sheath cell','Inner wreath','Large, thick-walled cells ringing each vein. Their chloroplasts crowd toward the outer wall and, in maize, are nearly agranal, because NADPH arrives in malate rather than from photosystem II. Rubisco and the Calvin cycle work here.'],
+  xylem:['Xylem vessel','Vascular bundle, upper side','Dead, lignified tubes that carry water and minerals from the roots. They sit on the upper (adaxial) side of each bundle.'],
+  phloem:['Phloem','Vascular bundle, lower side','Sieve tubes and companion cells on the lower (abaxial) side. They load sugar made in the leaf and carry it to the ear, stalk and roots.'],
+  parenchyma:['Vascular parenchyma','Inside the bundle','Living packing cells between xylem and phloem that help move solutes into the conducting cells.'],
+  epidermis:['Epidermis','Outer layer','A single cell layer covered in waxy cuticle that limits water loss.'],
+  bulliform:['Bulliform cells','Upper epidermis','Large, thin-walled cells between veins. When they lose water the leaf rolls inward, a grass response to drought and heat.'],
+  stoma:['Stoma','Lower epidermis','A pore between two dumbbell-shaped guard cells, flanked by subsidiary cells, as in all grasses. CO₂ enters here into the substomatal cavity.']
+};
+function legendHTML(){ return ['co2','pep','oaa','mal','pyr','atp','adp','amp','nadph','glc'].map(k=>`<span><i class="dot" style="background:${MOL[k].hex};color:${MOL[k].hex}"></i>${MOL[k].name}</span>`).join(''); }
+function renderPanel(){
+  if(mode==='plant'){
+    panel.innerHTML=`
+      <div class="eyebrow">Layer 1 · Whole plant</div>
+      <h2>A C4 grass in field light</h2>
+      <p>Maize fixes carbon twice. A pump in the outer leaf cells packs CO₂ into an inner ring of cells, so Rubisco keeps working at high CO₂ even when stomata partly close in the heat.</p>
+      <div class="row"><button class="btn primary" data-act="cut">Cut a leaf section</button></div>
+      <p class="note">Or click any leaf on the plant to zoom into it.</p>
+      <div class="ctrl">
+        <label for="wind">Wind<input id="wind" type="range" min="0" max="2" step="0.05" value="${windSetting}"><output id="windO">${windSetting.toFixed(2)}</output></label>
+        <label for="sun">Sun height<input id="sun" type="range" min="6" max="70" step="1" value="${sunElev}"><output id="sunO">${sunElev}°</output></label>
+      </div>
+      <p class="note">Lower the sun to see light pass through the leaf blades. The glow is the green light chlorophyll does not absorb.</p>
+      <dl class="facts">
+        <dt>Pathway</dt><dd>C4, NADP-malic enzyme subtype</dd>
+        <dt>Leaf veins</dt><dd>Parallel, closely spaced</dd>
+        <dt>Leaf arrangement</dt><dd>Two ranks, alternating sides</dd>
+        <dt>Flowers</dt><dd>Male tassel on top, female ears at the nodes</dd>
+      </dl>`;
+  } else if(mode==='kranz'){
+    const t=selectedTissue&&TISSUE[selectedTissue];
+    panel.innerHTML=`
+      <div class="eyebrow">Layer 2 · Kranz anatomy</div>
+      <h2>Two rings of cells around every vein</h2>
+      <p><em>Kranz</em> is German for wreath. Bundle sheath cells form the inner wreath around each vein, and mesophyll cells radiate around them. The two cell types split photosynthesis between them.</p>
+      ${t?`<div class="card"><div class="where">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p></div>`:`<div class="card"><h3>Identify a cell</h3><p>Click any cell in the cross-section to see what it does.</p></div>`}
+      <div class="sec">Mesh layers</div>
+      <div class="checks">
+        <label><input type="checkbox" data-layer="epi" ${layerVis.epi?'checked':''}><i class="sw" style="background:#a7c98b"></i>Epidermis</label>
+        <label><input type="checkbox" data-layer="meso" ${layerVis.meso?'checked':''}><i class="sw" style="background:#7fbf5f"></i>Mesophyll</label>
+        <label><input type="checkbox" data-layer="bs" ${layerVis.bs?'checked':''}><i class="sw" style="background:#4f8f3d"></i>Bundle sheath</label>
+        <label><input type="checkbox" data-layer="vasc" ${layerVis.vasc?'checked':''}><i class="sw" style="background:#cf9271"></i>Vascular</label>
+      </div>
+      <div class="ctrl"><label for="explode">Explode layers<input id="explode" type="range" min="0" max="1" step="0.01" value="${explodeSetting}"><output id="explodeO">${Math.round(explodeSetting*100)}%</output></label></div>
+      <div class="row"><button class="btn primary" data-act="trace">Trace the C4 pathway</button><button class="btn" data-act="plant">Back to plant</button></div>
+      <p class="note">Shown as a block of leaf cut across four veins. Cells extend back along the leaf, so each one is a column.</p>`;
+  } else {
+    const s=STEPS[activeStep];
+    panel.innerHTML=`
+      <div class="eyebrow">Layer 3 · Biochemical flow</div>
+      <h2>The two-stage fixation loop</h2>
+      <p>Click a numbered node in the scene or a step below. Particles show each molecule moving between the two cells.</p>
+      <div class="row"><button class="btn primary" data-act="play">${playing?'Stop':'Play full cycle'}</button><button class="btn" data-act="kranz">Back to anatomy</button></div>
+      <ol class="steps">${STEPS.map((x,i)=>`<li><button class="step ${i===activeStep?'on':''}" data-step="${i}" style="--sc:${x.color}"><b>${x.n}</b>${x.title}<em>${x.where.split(' ')[0]}</em></button></li>`).join('')}</ol>
+      ${s?`<div class="card"><div class="where">${s.where}</div><h3>${s.title}</h3><div class="eq">${s.eq}</div><div class="enz">Enzyme: <strong>${s.enzyme}</strong></div><p>${s.text}</p></div>`:''}
+      <div class="sec">Molecules</div>
+      <div class="legend">${legendHTML()}</div>
+      <div class="sec">Energy cost per CO₂ fixed</div>
+      <table class="budget"><thead><tr><th></th><th>ATP</th><th>NADPH</th></tr></thead>
+        <tbody><tr><td>C3 plant</td><td>3</td><td>2</td></tr><tr><td>Maize (C4)</td><td>5</td><td>2</td></tr><tr><td>Per glucose, C4</td><td>30</td><td>12</td></tr></tbody></table>
+      <p class="note">The two extra ATP pay for PPDK. In return Rubisco rarely grabs O₂, which saves far more in hot, bright conditions.</p>`;
+  }
+}
+panel.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act],[data-step]'); if(!b) return;
+  if(b.dataset.step!=null){ stopPlay(); runStep(+b.dataset.step); return; }
+  const a=b.dataset.act;
+  if(a==='cut') go('kranz');
+  else if(a==='trace') go('pathway');
+  else if(a==='plant') go('plant');
+  else if(a==='kranz') go('kranz');
+  else if(a==='play'){ playing?stopPlay():startPlay(); }
+});
+panel.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='wind'){ windSetting=+t.value; document.getElementById('windO').textContent=windSetting.toFixed(2); }
+  else if(t.id==='sun'){ sunElev=+t.value; setSun(sunElev); document.getElementById('sunO').textContent=sunElev+'°'; }
+  else if(t.id==='explode'){ explodeSetting=+t.value; explodeTarget=explodeSetting; document.getElementById('explodeO').textContent=Math.round(explodeSetting*100)+'%'; }
+  else if(t.dataset.layer){ layerVis[t.dataset.layer]=t.checked; applyMode(); }
+});
+if('ResizeObserver' in window) new ResizeObserver(()=>layout()).observe(panel);
+
+function runStep(i){
+  activeStep=i;
+  const s=STEPS[i];
+  Object.values(PATHS).forEach(p=>p.target=0.1);
+  s.bursts.forEach(([k,m,n,delay,loops])=>{ PATHS[k].target=0.9; burst(k,m,n,delay,loops,true); });
+  nodeLabels.forEach((L,j)=>L.el.classList.toggle('on',j===i));
+  renderPanel();
+}
+function startPlay(){
+  playing=true; let i=0;
+  const next=()=>{ if(!playing) return; runStep(i); i=(i+1)%STEPS.length; playTimer=setTimeout(next,i===0?4200:3100); };
+  next();
+}
+function stopPlay(){ if(!playing) return; playing=false; clearTimeout(playTimer); if(mode==='pathway') renderPanel(); }
+
+/* ================= PICKING ================= */
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+let downXY=null;
+canvas.addEventListener('pointerdown',e=>{ downXY=[e.clientX,e.clientY]; });
+canvas.addEventListener('pointerup',e=>{
+  if(!downXY || Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>6 || transitioning) return;
+  ndc.set(e.clientX/VW*2-1,-(e.clientY/VH)*2+1); ray.setFromCamera(ndc,camera);
+  if(mode==='plant'){
+    const h=ray.intersectObjects(heroLeaves,false)[0];
+    if(h){ const n=h.face.normal.clone().transformDirection(h.object.matrixWorld); if(n.dot(camera.position.clone().sub(h.point))<0) n.negate(); go('kranz',{hit:{point:h.point.clone(),normal:n}}); }
+  } else if(mode==='kranz'){
+    const h=ray.intersectObjects(pickables,false).find(x=>{ let o=x.object; while(o){ if(!o.visible) return false; o=o.parent; } return true; });
+    if(h && h.object.userData.kind){ selectedTissue=h.object.userData.kind; renderPanel(); }
+  }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(mode!=='plant' || e.buttons) { canvas.style.cursor=''; return; }
+  ndc.set(e.clientX/VW*2-1,-(e.clientY/VH)*2+1); ray.setFromCamera(ndc,camera);
+  canvas.style.cursor = ray.intersectObjects(heroLeaves,false).length ? 'pointer' : '';
+});
+
+/* ================= LOOP ================= */
+const clock=new THREE.Clock();
+function frame(){
+  requestAnimationFrame(frame);
+  const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
+  if(activeScene===plantScene){
+    leafUniforms.uTime.value=t;
+    const w=reduce?windSetting*0.25:windSetting;
+    leafUniforms.uWind.value += (w-leafUniforms.uWind.value)*Math.min(1,dt*3);
+    sky.position.copy(camera.position);
+  } else {
+    explode += (explodeTarget-explode)*Math.min(1,dt*4);
+    gVasc.position.z=explode*2.0; gBS.position.z=explode*1.0; gEpi.position.z=-explode*1.0;
+    const newDim = dim + (dimTarget-dim)*Math.min(1,dt*3);
+    if(Math.abs(newDim-dim)>1e-4){ dim=newDim; shared.forEach(m=>m.color.copy(m.userData.base).multiplyScalar(dim)); }
+    if(mode==='pathway'){
+      Object.values(PATHS).forEach(p=>{ p.tube.material.opacity += (p.target-p.tube.material.opacity)*Math.min(1,dt*4); });
+      focusRings.forEach((r,i)=>r.material.opacity=0.35+0.25*Math.sin(t*2.2+i));
+      nodeDots.forEach((d,i)=>d.scale.setScalar(1+(i===activeStep?0.5+0.3*Math.sin(t*6):0.15*Math.sin(t*2+i))));
+      calvinTorus.rotation.z=-t*0.8;
+      ambient(dt);
+    }
+    if(PW.visible) updateParticles(dt);
+  }
+  stepTween();
+  if(!tween) controls.update();
+  renderer.render(activeScene,camera);
+  updateLabels();
+}
+addEventListener('resize',layout);
+renderPanel(); layout(); applyMode(); setControlsFor('plant');
+{ const v=VIEWS.plant(); camera.position.copy(v.p); controls.target.copy(v.t); camera.lookAt(v.t); }
+frame();
+})();
+</script>
+
+</body>
+</html>

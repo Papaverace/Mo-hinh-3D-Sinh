@@ -2,4 +2,5 @@
 Mô hình C3,C4,CAM
 
 - [Quang hợp ở thực vật C3 (3D)](https://papaverace.github.io/Mo-hinh-3D-Sinh/c3.html)
+- [Quang hợp ở thực vật C4 (3D)](https://papaverace.github.io/Mo-hinh-3D-Sinh/c4.html)
 - [Quang hợp ở thực vật CAM (3D)](https://papaverace.github.io/Mo-hinh-3D-Sinh/cam.html)
