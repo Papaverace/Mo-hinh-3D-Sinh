@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Opuntia CAM Clock</title>
+<title>Quang hợp ở thực vật CAM – Xương rồng tai thỏ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -120,96 +120,96 @@ body{margin:0}
 <div class="wrap">
   <header>
     <div>
-      <p class="eyebrow">Crassulacean acid metabolism · <i>Opuntia ficus-indica</i></p>
-      <h1>Opuntia CAM Clock: <em>night</em> intake, <em>day</em> spending</h1>
+      <p class="eyebrow">Chu trình axit của họ Thuốc bỏng (CAM) · <i>Opuntia ficus-indica</i></p>
+      <h1>Đồng hồ CAM của xương rồng: <em>đêm</em> hấp thụ, <em>ngày</em> sử dụng</h1>
     </div>
-    <p class="lede">Prickly pear keeps its stomata shut through the desert day. It takes in CO₂ at night, when cool air costs little water, and parks it as <b>malic acid</b> in large vacuoles. After sunrise it releases that CO₂ behind closed pores and runs the <b>Calvin cycle</b>. Drag the clock to move through the four CAM phases.</p>
+    <p class="lede">Xương rồng tai thỏ đóng khí khổng suốt ban ngày nóng nực ở sa mạc. Cây lấy CO₂ vào ban đêm, khi không khí mát nên ít mất nước, và tích trữ dưới dạng <b>axit malic</b> trong các không bào lớn. Sau khi mặt trời mọc, cây giải phóng lượng CO₂ đó khi khí khổng đang đóng và thực hiện <b>chu trình Calvin</b>. Kéo thanh thời gian để đi qua bốn pha CAM.</p>
   </header>
 
   <div class="bar">
-    <button class="btn" id="play" type="button"><svg viewBox="0 0 12 12" id="play-ico"><rect x="1" y="1" width="3.5" height="10"/><rect x="7.5" y="1" width="3.5" height="10"/></svg><span id="play-lbl">Pause</span></button>
+    <button class="btn" id="play" type="button"><svg viewBox="0 0 12 12" id="play-ico"><rect x="1" y="1" width="3.5" height="10"/><rect x="7.5" y="1" width="3.5" height="10"/></svg><span id="play-lbl">Tạm dừng</span></button>
     <span class="clockread" id="clock">23:00</span>
     <div class="tl">
       <canvas id="tl"></canvas>
-      <input type="range" id="time" min="0" max="1439" step="1" value="1380" aria-label="Time of day">
+      <input type="range" id="time" min="0" max="1439" step="1" value="1380" aria-label="Thời điểm trong ngày">
     </div>
-    <div class="seg" role="group" aria-label="3D view">
-      <button type="button" id="v-lapse" aria-pressed="true">Time-lapse</button>
-      <button type="button" id="v-split" aria-pressed="false">Split night / day</button>
+    <div class="seg" role="group" aria-label="Chế độ xem 3D">
+      <button type="button" id="v-lapse" aria-pressed="true">Tua nhanh thời gian</button>
+      <button type="button" id="v-split" aria-pressed="false">Chia đêm / ngày</button>
     </div>
     <div class="legend">
-      <span><i style="background:var(--sap)"></i>Stomatal aperture</span>
-      <span><i style="background:var(--night)"></i>Vacuolar malic acid</span>
-      <span><i style="background:var(--day)"></i>Chloroplast starch</span>
-      <span>Shaded band = night</span>
+      <span><i style="background:var(--sap)"></i>Độ mở khí khổng</span>
+      <span><i style="background:var(--night)"></i>Axit malic trong không bào</span>
+      <span><i style="background:var(--day)"></i>Tinh bột trong lục lạp</span>
+      <span>Vùng tối = ban đêm</span>
     </div>
   </div>
 
-  <section class="stage" id="stage" aria-label="3D prickly pear in a desert, lit for the selected time of day">
+  <section class="stage" id="stage" aria-label="Xương rồng tai thỏ 3D trên sa mạc, chiếu sáng theo thời điểm đã chọn">
     <canvas id="gl"></canvas>
-    <div class="hud" id="hud"><div class="t" id="hud-t">23:00</div><div class="p" id="hud-p">Phase I · Nocturnal CO₂ uptake</div></div>
-    <div class="hud-r" id="hud-r"><b id="hud-dot"></b><span id="hud-s">Stomata open</span></div>
-    <div class="marker" id="marker"><span></span><em>Section A</em></div>
-    <div class="split-tags" id="split-tags" hidden><span>Night · 01:00 · stomata open</span><span>Day · 13:00 · stomata closed</span></div>
-    <p class="hint">Drag to orbit</p>
+    <div class="hud" id="hud"><div class="t" id="hud-t">23:00</div><div class="p" id="hud-p">Pha I · Hấp thụ CO₂ ban đêm</div></div>
+    <div class="hud-r" id="hud-r"><b id="hud-dot"></b><span id="hud-s">Khí khổng mở</span></div>
+    <div class="marker" id="marker"><span></span><em>Lát cắt A</em></div>
+    <div class="split-tags" id="split-tags" hidden><span>Đêm · 01:00 · khí khổng mở</span><span>Ngày · 13:00 · khí khổng đóng</span></div>
+    <p class="hint">Kéo để xoay</p>
   </section>
 
   <section class="grid">
     <div class="panel micro">
-      <h2>Section A: chlorenchyma under the cuticle</h2>
-      <p class="sub">A stoma opens into the air spaces of the pad. In one water-storing cell, follow carbon from the pore into the vacuole by night (blue) and out again to the chloroplast by day (gold).</p>
+      <h2>Lát cắt A: mô đồng hóa dưới lớp cutin</h2>
+      <p class="sub">Khí khổng mở thông với khoảng gian bào của bẹ thân. Trong một tế bào dự trữ nước, hãy theo dõi cacbon đi từ khí khổng vào không bào vào ban đêm (xanh lam) và ra lại lục lạp vào ban ngày (vàng).</p>
       <canvas id="micro"></canvas>
       <div class="keys">
         <span><i style="background:#e9eef2"></i>CO₂</span>
-        <span><i style="background:var(--night)"></i>OAA / malate (night)</span>
-        <span><i style="background:#f2c14e"></i>Malate leaving vacuole</span>
-        <span><i style="background:#ff8a3d"></i>Released CO₂ (day)</span>
-        <span><i style="background:#f4f0e2"></i>Starch grain</span>
+        <span><i style="background:var(--night)"></i>OAA / malat (đêm)</span>
+        <span><i style="background:#f2c14e"></i>Malat rời không bào</span>
+        <span><i style="background:#ff8a3d"></i>CO₂ giải phóng (ngày)</span>
+        <span><i style="background:#f4f0e2"></i>Hạt tinh bột</span>
       </div>
     </div>
     <aside class="panel">
       <div class="meters">
-        <h2>Pad readings</h2>
-        <dl class="m"><dt>Stomatal aperture</dt><dd><span id="r-ap">100</span><small>%</small></dd><div class="bar-t"><s id="b-ap" style="background:var(--sap)"></s></div></dl>
-        <dl class="m"><dt>Vacuolar malic acid</dt><dd><span id="r-mal">0</span><small>mM</small></dd><div class="bar-t"><s id="b-mal" style="background:var(--night)"></s></div></dl>
-        <dl class="m"><dt>Vacuole pH</dt><dd><span id="r-ph">5.6</span></dd><div class="bar-t"><s id="b-ph" style="background:linear-gradient(90deg,#4f6a8c,var(--night))"></s></div></dl>
-        <dl class="m"><dt>Chloroplast starch</dt><dd><span id="r-st">0</span><small>% of max</small></dd><div class="bar-t"><s id="b-st" style="background:var(--day)"></s></div></dl>
-        <dl class="m"><dt>Water lost through stomata</dt><dd><span id="r-w">0</span><small>rel.</small></dd><div class="bar-t"><s id="b-w" style="background:var(--water)"></s></div></dl>
-        <div class="state" id="state"><b>Night carboxylation</b>CO₂ fixed by PEP carboxylase and stored as malic acid.</div>
+        <h2>Chỉ số của bẹ thân</h2>
+        <dl class="m"><dt>Độ mở khí khổng</dt><dd><span id="r-ap">100</span><small>%</small></dd><div class="bar-t"><s id="b-ap" style="background:var(--sap)"></s></div></dl>
+        <dl class="m"><dt>Axit malic trong không bào</dt><dd><span id="r-mal">0</span><small>mM</small></dd><div class="bar-t"><s id="b-mal" style="background:var(--night)"></s></div></dl>
+        <dl class="m"><dt>pH không bào</dt><dd><span id="r-ph">5.6</span></dd><div class="bar-t"><s id="b-ph" style="background:linear-gradient(90deg,#4f6a8c,var(--night))"></s></div></dl>
+        <dl class="m"><dt>Tinh bột lục lạp</dt><dd><span id="r-st">0</span><small>% tối đa</small></dd><div class="bar-t"><s id="b-st" style="background:var(--day)"></s></div></dl>
+        <dl class="m"><dt>Nước mất qua khí khổng</dt><dd><span id="r-w">0</span><small>tương đối</small></dd><div class="bar-t"><s id="b-w" style="background:var(--water)"></s></div></dl>
+        <div class="state" id="state"><b>Cacboxyl hóa ban đêm</b>CO₂ được PEP carboxylase cố định và tích trữ dưới dạng axit malic.</div>
       </div>
     </aside>
   </section>
 
   <section class="panel">
-    <h2>Biochemical flow</h2>
-    <p class="sub">The same cell runs two programs separated in time. The active one brightens as you move the clock.</p>
+    <h2>Dòng sinh hóa</h2>
+    <p class="sub">Cùng một tế bào chạy hai chương trình tách biệt theo thời gian. Chương trình đang hoạt động sẽ sáng lên khi bạn kéo đồng hồ.</p>
     <div class="zones">
       <div class="zone night" id="z-night">
-        <div class="zone-h"><h3>Night · stomata open</h3><span class="badge" id="zb-night">Active</span></div>
+        <div class="zone-h"><h3>Đêm · khí khổng mở</h3><span class="badge" id="zb-night">Hoạt động</span></div>
         <ol class="steps">
-          <li><span class="cmp">Stoma</span><b>CO₂ diffuses in</b><p>Cool night air means a small humidity gap, so the open pore loses little water.</p></li>
-          <li><span class="cmp">Cytosol</span><b>Carbonic anhydrase</b><p>CO₂ is hydrated to bicarbonate (HCO₃⁻).</p></li>
-          <li><span class="cmp">Cytosol</span><b>PEP carboxylase fixation</b><p>HCO₃⁻ is added to phosphoenolpyruvate. PEP comes from yesterday's starch.</p></li>
-          <li><span class="cmp">Cytosol</span><b>Oxaloacetate (OAA)</b><p>A four-carbon acid, the first product of fixation.</p></li>
-          <li><span class="cmp">Cytosol</span><b>Malate dehydrogenase → malic acid</b><p>OAA is reduced to malate using NADH.</p></li>
-          <li><span class="cmp">Vacuole</span><b>Stored in the central vacuole</b><p>Proton pumps load malic acid across the tonoplast. Vacuolar pH falls toward 3.5.</p></li>
+          <li><span class="cmp">Khí khổng</span><b>CO₂ khuếch tán vào</b><p>Không khí ban đêm mát nên chênh lệch độ ẩm nhỏ, khí khổng mở mà ít mất nước.</p></li>
+          <li><span class="cmp">Tế bào chất</span><b>Carbonic anhydrase</b><p>CO₂ được hiđrat hóa thành bicacbonat (HCO₃⁻).</p></li>
+          <li><span class="cmp">Tế bào chất</span><b>Cố định nhờ PEP carboxylase</b><p>HCO₃⁻ được gắn vào phosphoenolpyruvat (PEP). PEP lấy từ tinh bột tích lũy hôm trước.</p></li>
+          <li><span class="cmp">Tế bào chất</span><b>Axit oxaloaxetic (OAA)</b><p>Axit 4 cacbon, sản phẩm đầu tiên của quá trình cố định.</p></li>
+          <li><span class="cmp">Tế bào chất</span><b>Malat dehydrogenase → axit malic</b><p>OAA bị khử thành malat nhờ NADH.</p></li>
+          <li><span class="cmp">Không bào</span><b>Tích trữ trong không bào trung tâm</b><p>Bơm proton đưa axit malic qua màng không bào. pH không bào giảm dần về khoảng 3,5.</p></li>
         </ol>
       </div>
       <div class="zone day" id="z-day">
-        <div class="zone-h"><h3>Day · stomata closed</h3><span class="badge" id="zb-day">Idle</span></div>
+        <div class="zone-h"><h3>Ngày · khí khổng đóng</h3><span class="badge" id="zb-day">Nghỉ</span></div>
         <ol class="steps">
-          <li><span class="cmp">Guard cells</span><b>Stomata seal shut</b><p>Hot, dry air would pull water out of an open pore, so the pad closes.</p></li>
-          <li><span class="cmp">Tonoplast</span><b>Malic acid leaves the vacuole</b><p>Stored acid is released back into the cytosol through the morning.</p></li>
-          <li><span class="cmp">Cytosol</span><b>Decarboxylation</b><p>Malic enzyme splits malate into CO₂ and pyruvate.</p></li>
-          <li><span class="cmp">Leaf air</span><b>CO₂ builds up inside</b><p>With pores closed, internal CO₂ rises well above outside air, which suppresses photorespiration.</p></li>
-          <li><span class="cmp">Chloroplast</span><b>Rubisco · C3 Calvin cycle</b><p>Light reactions supply ATP and NADPH to fix the released CO₂.</p></li>
-          <li><span class="cmp">Chloroplast</span><b>Starch production</b><p>Sugars are stored as starch, the PEP supply for the coming night.</p></li>
+          <li><span class="cmp">Tế bào hạt đậu</span><b>Khí khổng đóng kín</b><p>Không khí nóng, khô sẽ kéo nước ra khỏi khí khổng đang mở, nên cây đóng khí khổng.</p></li>
+          <li><span class="cmp">Màng không bào</span><b>Axit malic rời không bào</b><p>Axit dự trữ được giải phóng trở lại tế bào chất trong suốt buổi sáng.</p></li>
+          <li><span class="cmp">Tế bào chất</span><b>Khử cacboxyl</b><p>Enzyme malic tách malat thành CO₂ và pyruvat.</p></li>
+          <li><span class="cmp">Khí trong mô</span><b>CO₂ tích tụ bên trong</b><p>Khi khí khổng đóng, CO₂ bên trong tăng cao hơn hẳn không khí ngoài, nhờ đó ức chế hô hấp sáng.</p></li>
+          <li><span class="cmp">Lục lạp</span><b>Rubisco · chu trình Calvin (C3)</b><p>Pha sáng cung cấp ATP và NADPH để cố định lượng CO₂ vừa giải phóng.</p></li>
+          <li><span class="cmp">Lục lạp</span><b>Tổng hợp tinh bột</b><p>Đường được dự trữ dưới dạng tinh bột – nguồn PEP cho đêm tới.</p></li>
         </ol>
       </div>
     </div>
   </section>
 
-  <p class="notes">Curves follow the four textbook CAM phases: I night uptake, II dawn transition, III midday closure with decarboxylation, IV late-afternoon reopening with direct Rubisco fixation. Values are an illustrative model, not measurements; real malate peaks and timing vary with water status, temperature and species. Some CAM plants decarboxylate with PEP carboxykinase instead of malic enzyme.</p>
+  <p class="notes">Các đường cong theo bốn pha CAM trong sách giáo khoa: I hấp thụ ban đêm, II chuyển tiếp lúc bình minh, III đóng khí khổng buổi trưa kèm khử cacboxyl, IV mở lại vào cuối chiều và cố định trực tiếp bằng Rubisco. Số liệu chỉ mang tính minh họa, không phải số đo thực tế; đỉnh malat và thời điểm thực tế thay đổi theo tình trạng nước, nhiệt độ và loài. Một số cây CAM khử cacboxyl bằng PEP carboxykinase thay vì enzyme malic.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -229,10 +229,10 @@ const M = {
   day: h => smooth(-0.12, 0.2, Math.sin((h-6)/12*Math.PI)),
   ap(h){ if (h>=20||h<6) return 1; if (h<8) return 1-0.98*smooth(6,8,h); if (h<16) return 0.02; return 0.02+0.98*smooth(16,20,h); },
   phase(h){
-    if (h>=20||h<6) return ['I','Nocturnal CO₂ uptake'];
-    if (h<8) return ['II','Dawn transition'];
-    if (h<16) return ['III','Stomata closed, malate decarboxylation'];
-    return ['IV','Late-afternoon reopening'];
+    if (h>=20||h<6) return ['I','Hấp thụ CO₂ ban đêm'];
+    if (h<8) return ['II','Chuyển tiếp lúc bình minh'];
+    if (h<16) return ['III','Khí khổng đóng, khử cacboxyl malat'];
+    return ['IV','Mở lại vào cuối chiều'];
   },
   mal(h){
     if (h>=19||h<6){ const t=((h-19+24)%24)/11; return 25+155*smooth(0,1,t); }
@@ -610,16 +610,16 @@ function drawMicro(dt){
   if (ap>0.1){ const n=Math.round(M.water(h)*6); for(let k=0;k<n;k++){ const t=((performance.now()/1000*0.6 + k/n)%1); dotGlow(200+Math.sin(k*2.3+t*6)*8*t, 66-t*60, 2.2, '#d9796a', ap*(1-t)); } }
   // node chips
   const na=0.4+0.6*clamp(nf*1.6), da=0.4+0.6*clamp(df*1.6);
-  chip(432,296,'PEPC','#74b9ff',na); chip(458,212,'OAA','#74b9ff',na,'right'); chip(550,180,'Malate','#74b9ff',na,'center');
-  chip(442,322,'Malic enzyme  −CO₂','#f4a63c',da); chip(chl.cx,chl.cy+40,'Rubisco · Calvin','#f4a63c',0.4+0.6*clamp((df+xf)*1.6),'center');
+  chip(432,296,'PEPC','#74b9ff',na); chip(458,212,'OAA','#74b9ff',na,'right'); chip(550,180,'Malat','#74b9ff',na,'center');
+  chip(442,322,'Enzyme malic  −CO₂','#f4a63c',da); chip(chl.cx,chl.cy+40,'Rubisco · Calvin','#f4a63c',0.4+0.6*clamp((df+xf)*1.6),'center');
   // annotations
-  note(14,36,d>0.5?'Outside air · hot, dry':'Outside air · cool, humid');
-  note(258,48,ap>0.15?'Stoma open':'Stoma closed');
-  note(MW-14,76,'Waxy cuticle','right'); note(MW-14,104,'Epidermis','right');
-  note(212,142,'Substomatal cavity');
-  note(700,205,'Chlorenchyma cell');
-  note(vac.cx+10,vac.cy+80,'Central vacuole · pH '+M.ph(h).toFixed(1),'center');
-  note(chl.cx-64,chl.cy+64,'Starch');
+  note(14,36,d>0.5?'Không khí ngoài · nóng, khô':'Không khí ngoài · mát, ẩm');
+  note(258,48,ap>0.15?'Khí khổng mở':'Khí khổng đóng');
+  note(MW-14,76,'Lớp cutin sáp','right'); note(MW-14,104,'Biểu bì','right');
+  note(212,142,'Khoang dưới khí khổng');
+  note(700,205,'Tế bào mô đồng hóa');
+  note(vac.cx+10,vac.cy+80,'Không bào trung tâm · pH '+M.ph(h).toFixed(1),'center');
+  note(chl.cx-64,chl.cy+64,'Tinh bột');
   // scale bar
   mx.fillStyle='rgba(205,214,210,0.85)'; mx.fillRect(MW-134,MH-22,100,3); note(MW-84,MH-36,'50 µm','center');
 }
@@ -658,8 +658,8 @@ function updateText(){
   const key=Math.round(hour*60); if (key===lastShown) return; lastShown=key;
   const h=hour, ap=M.ap(h), mal=M.mal(h), ph=M.ph(h), st=M.starch(h), w=M.water(h), [pid,pn]=M.phase(h);
   R('clock').textContent=R('hud-t').textContent=fmt(h);
-  R('hud-p').textContent='Phase '+pid+' · '+pn;
-  R('hud-s').textContent = ap>0.6?'Stomata open':ap>0.1?'Stomata partly open':'Stomata closed';
+  R('hud-p').textContent='Pha '+pid+' · '+pn;
+  R('hud-s').textContent = ap>0.6?'Khí khổng mở':ap>0.1?'Khí khổng mở một phần':'Khí khổng đóng';
   R('hud-dot').style.background = ap>0.1?'var(--night)':'var(--day)';
   R('r-ap').textContent=Math.round(ap*100); R('b-ap').style.width=(ap*100)+'%';
   R('r-mal').textContent=Math.round(mal); R('b-mal').style.width=(mal/200*100)+'%';
@@ -670,20 +670,20 @@ function updateText(){
   const an=clamp(nf*1.4), ad=clamp(Math.max(df,xf)*1.4);
   zN.style.setProperty('--act',an); zD.style.setProperty('--act',ad);
   zN.style.setProperty('--run',an>0.15?'running':'paused'); zD.style.setProperty('--run',ad>0.15?'running':'paused');
-  R('zb-night').textContent=an>0.15?'Active':'Idle'; R('zb-day').textContent=ad>0.15?'Active':'Idle';
+  R('zb-night').textContent=an>0.15?'Hoạt động':'Nghỉ'; R('zb-day').textContent=ad>0.15?'Hoạt động':'Nghỉ';
   let s;
-  if (xf>0.25 && pid==='IV') s=['Direct C3 fixation','Stomata reopen as the air cools; CO₂ goes straight to Rubisco while the vacuole is empty.'];
-  else if (xf>0.25) s=['Dawn transition','The last open-pore CO₂ goes to Rubisco as light returns and stomata begin to close.'];
-  else if (nf>0.2) s=['Night carboxylation','CO₂ fixed by PEP carboxylase and stored as malic acid in the vacuole.'];
-  else if (df>0.2) s=['Day decarboxylation','Malic acid leaves the vacuole; released CO₂ feeds the Calvin cycle behind closed stomata.'];
-  else s=['Holding','Malate store full; waiting for light to start decarboxylation.'];
-  if (pid==='III' && df<0.2) s=['Store spent','Malic acid is used up; stomata stay closed through the hottest hours.'];
+  if (xf>0.25 && pid==='IV') s=['Cố định trực tiếp kiểu C3','Khí khổng mở lại khi trời mát; CO₂ đi thẳng tới Rubisco trong lúc không bào đã cạn.'];
+  else if (xf>0.25) s=['Chuyển tiếp lúc bình minh','Lượng CO₂ cuối cùng vào qua khí khổng được Rubisco dùng khi trời sáng và khí khổng bắt đầu đóng.'];
+  else if (nf>0.2) s=['Cacboxyl hóa ban đêm','CO₂ được PEP carboxylase cố định và tích trữ dưới dạng axit malic trong không bào.'];
+  else if (df>0.2) s=['Khử cacboxyl ban ngày','Axit malic rời không bào; CO₂ giải phóng cung cấp cho chu trình Calvin khi khí khổng đóng.'];
+  else s=['Chờ','Kho malat đã đầy; chờ ánh sáng để bắt đầu khử cacboxyl.'];
+  if (pid==='III' && df<0.2) s=['Kho đã cạn','Axit malic đã dùng hết; khí khổng vẫn đóng suốt những giờ nóng nhất.'];
   R('state').innerHTML='<b>'+s[0]+'</b>'+s[1];
 }
 
 /* ---------- controls ---------- */
 const playBtn=R('play');
-function setPlaying(p){ playing=p; R('play-lbl').textContent=p?'Pause':'Play';
+function setPlaying(p){ playing=p; R('play-lbl').textContent=p?'Tạm dừng':'Phát';
   R('play-ico').innerHTML = p ? '<rect x="1" y="1" width="3.5" height="10"/><rect x="7.5" y="1" width="3.5" height="10"/>' : '<path d="M2 1 L11 6 L2 11 Z"/>'; }
 playBtn.addEventListener('click', () => setPlaying(!playing));
 slider.addEventListener('input', () => { hour=slider.value/60; setPlaying(false); });

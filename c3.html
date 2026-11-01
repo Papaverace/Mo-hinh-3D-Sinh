@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>C3 Photosynthesis Explorer</title>
+<title>Quang hợp ở thực vật C3</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -143,82 +143,82 @@ input[type=range]{width:100%;accent-color:var(--chl);min-width:0}
 
 </head>
 <body>
-<div id="stage" aria-label="3D model of a C3 leaf, a chloroplast and the photosynthesis reactions. Drag to rotate, scroll or pinch to zoom."></div>
+<div id="stage" aria-label="Mô hình 3D lá cây C3, lục lạp và các phản ứng quang hợp. Kéo để xoay, cuộn hoặc chụm ngón tay để phóng to."></div>
 <div id="labels" aria-hidden="true"></div>
-<div id="nogl" hidden><p>This model needs WebGL, which this browser has turned off.</p></div>
+<div id="nogl" hidden><p>Mô hình cần WebGL, nhưng trình duyệt này đang tắt WebGL.</p></div>
 
 <aside class="panel" id="panel">
   <div class="head">
     <div>
-      <p class="eyebrow">C3 plant · light &amp; Calvin cycle</p>
-      <h1>Inside a working chloroplast</h1>
-      <p class="lede">Light splits water on the thylakoids. The ATP and NADPH it makes drive the Calvin cycle in the stroma, where Rubisco fixes CO₂.</p>
+      <p class="eyebrow">Thực vật C3 · pha sáng &amp; chu trình Calvin</p>
+      <h1>Bên trong lục lạp đang quang hợp</h1>
+      <p class="lede">Ánh sáng phân li nước trên màng thylakoid. ATP và NADPH tạo ra được dùng cho chu trình Calvin trong chất nền (stroma), nơi Rubisco cố định CO₂.</p>
     </div>
-    <button class="icon-btn" id="collapse" aria-expanded="true" aria-controls="panelBody" title="Hide panel">–</button>
+    <button class="icon-btn" id="collapse" aria-expanded="true" aria-controls="panelBody" title="Ẩn bảng">–</button>
   </div>
   <div class="body" id="panelBody">
     <section class="sec">
-      <h2>Layers</h2>
-      <label class="sw"><span class="swatch" style="background:var(--sun)"></span><span><span class="sw-name">Environment</span><span class="sw-sub">Broadleaf, sunbeams, dappled light</span></span><input type="checkbox" id="lay-env" checked></label>
-      <label class="sw"><span class="swatch" style="background:var(--chl)"></span><span><span class="sw-name">Chloroplast inner structure</span><span class="sw-sub">Envelope, grana, stroma lamellae</span></span><input type="checkbox" id="lay-chl" checked></label>
-      <label class="sw"><span class="swatch" style="background:var(--g3p)"></span><span><span class="sw-name">Molecular reactions</span><span class="sw-sub">Water splitting, carriers, Calvin cycle</span></span><input type="checkbox" id="lay-rx" checked></label>
+      <h2>Lớp hiển thị</h2>
+      <label class="sw"><span class="swatch" style="background:var(--sun)"></span><span><span class="sw-name">Môi trường</span><span class="sw-sub">Lá rộng, tia nắng, ánh sáng lốm đốm</span></span><input type="checkbox" id="lay-env" checked></label>
+      <label class="sw"><span class="swatch" style="background:var(--chl)"></span><span><span class="sw-name">Cấu trúc trong của lục lạp</span><span class="sw-sub">Màng bao, grana, phiến stroma</span></span><input type="checkbox" id="lay-chl" checked></label>
+      <label class="sw"><span class="swatch" style="background:var(--g3p)"></span><span><span class="sw-name">Phản ứng phân tử</span><span class="sw-sub">Quang phân li nước, chất mang, chu trình Calvin</span></span><input type="checkbox" id="lay-rx" checked></label>
     </section>
 
     <section class="sec">
-      <h2>View</h2>
-      <div class="seg" role="group" aria-label="Camera view">
-        <button class="btn" id="v-leaf" type="button">Leaf</button>
-        <button class="btn" id="v-chl" type="button">Chloroplast</button>
-        <button class="btn" id="v-gran" type="button">Granum</button>
+      <h2>Góc nhìn</h2>
+      <div class="seg" role="group" aria-label="Góc nhìn camera">
+        <button class="btn" id="v-leaf" type="button">Lá</button>
+        <button class="btn" id="v-chl" type="button">Lục lạp</button>
+        <button class="btn" id="v-gran" type="button">Hạt grana</button>
       </div>
-      <label class="sw"><span class="swatch" style="background:#3f9a3c"></span><span><span class="sw-name">Spin grana</span><span class="sw-sub">Turn the thylakoid stacks 360°</span></span><input type="checkbox" id="spin" checked></label>
-      <div class="range"><label for="angle">Granum</label><input type="range" id="angle" min="0" max="360" step="1" value="0"><output id="angleOut" for="angle">0°</output></div>
+      <label class="sw"><span class="swatch" style="background:#3f9a3c"></span><span><span class="sw-name">Xoay grana</span><span class="sw-sub">Xoay chồng thylakoid 360°</span></span><input type="checkbox" id="spin" checked></label>
+      <div class="range"><label for="angle">Grana</label><input type="range" id="angle" min="0" max="360" step="1" value="0"><output id="angleOut" for="angle">0°</output></div>
     </section>
 
     <section class="sec">
-      <h2>Playback</h2>
-      <div class="row"><button class="btn primary" id="play" type="button">Pause</button><button class="btn" id="reset" type="button">Reset view</button></div>
-      <div class="range"><label for="speed">Speed</label><input type="range" id="speed" min="0.25" max="2.5" step="0.05" value="1"><output id="speedOut" for="speed">1.00×</output></div>
-      <p class="note" id="motionNote" hidden>Motion starts paused because your device asks for reduced motion. Press Play to run it.</p>
+      <h2>Phát</h2>
+      <div class="row"><button class="btn primary" id="play" type="button">Tạm dừng</button><button class="btn" id="reset" type="button">Đặt lại</button></div>
+      <div class="range"><label for="speed">Tốc độ</label><input type="range" id="speed" min="0.25" max="2.5" step="0.05" value="1"><output id="speedOut" for="speed">1.00×</output></div>
+      <p class="note" id="motionNote" hidden>Chuyển động đang tạm dừng vì thiết bị của bạn bật chế độ giảm chuyển động. Bấm Phát để chạy.</p>
     </section>
 
     <section class="sec">
-      <h2>Running tally</h2>
+      <h2>Bộ đếm</h2>
       <dl class="tally">
-        <div><dt><span class="dot" style="background:#9ad1ff"></span>H₂O split</dt><dd id="t-h2o">0</dd></div>
-        <div><dt><span class="dot" style="background:var(--o2)"></span>O₂ released</dt><dd id="t-o2">0</dd></div>
-        <div><dt><span class="dot" style="background:var(--atp)"></span>ATP made</dt><dd id="t-atp">0</dd></div>
-        <div><dt><span class="dot" style="background:var(--nadph)"></span>NADPH made</dt><dd id="t-nadph">0</dd></div>
-        <div><dt><span class="dot" style="background:var(--co2)"></span>CO₂ fixed</dt><dd id="t-co2">0</dd></div>
-        <div><dt><span class="dot" style="background:var(--g3p)"></span>G3P exported</dt><dd id="t-g3p">0</dd></div>
+        <div><dt><span class="dot" style="background:#9ad1ff"></span>H₂O bị phân li</dt><dd id="t-h2o">0</dd></div>
+        <div><dt><span class="dot" style="background:var(--o2)"></span>O₂ thải ra</dt><dd id="t-o2">0</dd></div>
+        <div><dt><span class="dot" style="background:var(--atp)"></span>ATP tạo ra</dt><dd id="t-atp">0</dd></div>
+        <div><dt><span class="dot" style="background:var(--nadph)"></span>NADPH tạo ra</dt><dd id="t-nadph">0</dd></div>
+        <div><dt><span class="dot" style="background:var(--co2)"></span>CO₂ được cố định</dt><dd id="t-co2">0</dd></div>
+        <div><dt><span class="dot" style="background:var(--g3p)"></span>G3P xuất ra</dt><dd id="t-g3p">0</dd></div>
         <div><dt><span class="dot" style="background:var(--glu)"></span>Glucose</dt><dd id="t-glu">0</dd></div>
       </dl>
-      <p class="note">Each CO₂ fixed costs <b>3 ATP + 2 NADPH</b>. Three turns export <b>1 G3P</b>; the other five G3P regenerate three RuBP. Two G3P build one glucose.</p>
+      <p class="note">Cố định mỗi CO₂ tốn <b>3 ATP + 2 NADPH</b>. Ba vòng chu trình xuất ra <b>1 G3P</b>; năm G3P còn lại tái tạo ba RuBP. Hai G3P tạo thành một glucose.</p>
     </section>
 
     <section class="sec">
-      <h2>The chemistry</h2>
+      <h2>Phương trình hóa học</h2>
       <div class="eq">
-        Light (thylakoid): 2H₂O → O₂ + 4H⁺ + 4e⁻<br>
-        Calvin (stroma): 3CO₂ + 3RuBP → 6 3-PGA → 6 G3P<br>
-        Overall: 6CO₂ + 12H₂O → C₆H₁₂O₆ + 6O₂ + 6H₂O
+        Pha sáng (thylakoid): 2H₂O → O₂ + 4H⁺ + 4e⁻<br>
+        Calvin (chất nền): 3CO₂ + 3RuBP → 6 3-PGA → 6 G3P<br>
+        Tổng quát: 6CO₂ + 12H₂O → C₆H₁₂O₆ + 6O₂ + 6H₂O
       </div>
-      <p class="note">These plants are called <b>C3</b> because Rubisco's first stable product, 3-phosphoglycerate, has three carbons.</p>
+      <p class="note">Các cây này được gọi là <b>C3</b> vì sản phẩm ổn định đầu tiên của Rubisco là axit 3-phosphoglyceric (APG), có ba nguyên tử cacbon.</p>
     </section>
 
     <section class="sec">
-      <h2>Legend</h2>
+      <h2>Chú thích</h2>
       <div class="legend">
-        <span><i class="dot" style="background:var(--sun)"></i>Photon</span>
-        <span><i class="dot" style="background:var(--hplus)"></i>H⁺ to lumen</span>
+        <span><i class="dot" style="background:var(--sun)"></i>Photon (ánh sáng)</span>
+        <span><i class="dot" style="background:var(--hplus)"></i>H⁺ vào xoang thylakoid</span>
         <span><i class="dot" style="background:var(--atp)"></i>ATP / ADP</span>
         <span><i class="dot" style="background:var(--nadph)"></i>NADPH / NADP⁺</span>
-        <span><i class="dot" style="background:var(--o2)"></i>Oxygen atom</span>
-        <span><i class="dot" style="background:#555f66;border:1px solid var(--co2)"></i>Carbon atom</span>
-        <span><i class="dot" style="background:#f2994a"></i>Photosystem II</span>
-        <span><i class="dot" style="background:#a58cf0"></i>Photosystem I</span>
+        <span><i class="dot" style="background:var(--o2)"></i>Nguyên tử oxy</span>
+        <span><i class="dot" style="background:#555f66;border:1px solid var(--co2)"></i>Nguyên tử cacbon</span>
+        <span><i class="dot" style="background:#f2994a"></i>Hệ quang hóa II</span>
+        <span><i class="dot" style="background:#a58cf0"></i>Hệ quang hóa I</span>
       </div>
-      <p class="hint">Drag to orbit · scroll or pinch to zoom · right-drag to pan</p>
+      <p class="hint">Kéo để xoay · cuộn/chụm để phóng to · kéo chuột phải để di chuyển</p>
     </section>
   </div>
 </aside>
@@ -236,10 +236,10 @@ collapseBtn.addEventListener('click', () => {
   const c = panel.classList.toggle('collapsed');
   collapseBtn.setAttribute('aria-expanded', String(!c));
   collapseBtn.textContent = c ? '+' : '–';
-  collapseBtn.title = c ? 'Show panel' : 'Hide panel';
+  collapseBtn.title = c ? 'Hiện bảng' : 'Ẩn bảng';
 });
 
-if (!window.THREE || !THREE.OrbitControls) { $('#nogl').hidden = false; $('#nogl p').textContent = 'The 3D library could not load. Check your connection and reload the page.'; return; }
+if (!window.THREE || !THREE.OrbitControls) { $('#nogl').hidden = false; $('#nogl p').textContent = 'Không tải được thư viện 3D. Hãy kiểm tra kết nối mạng và tải lại trang.'; return; }
 
 const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
 Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).then(init);
@@ -714,20 +714,20 @@ function label(layer, text, sub, obj, minor){
 }
 const leafAnchor = new THREE.Object3D(); scene.add(leafAnchor);
 const stomaAnchor = new THREE.Object3D(); scene.add(stomaAnchor);
-label('env','C3 broadleaf','palisade mesophyll lies under the surface',leafAnchor);
-label('env','O₂ leaves the leaf','by diffusion through stomata',stomaAnchor,true);
-label('chl','Granum','stack of thylakoid discs',anchor(frame, FG.clone().add(V(-0.85,0.62,0))));
-label('chl','Envelope','outer + inner membrane',anchor(frame, V(-3.3,1.45,-0.6)),true);
-label('chl','Stroma lamella','links neighbouring grana',anchor(frame, V(-0.95,0.0,-0.55)),true);
-label('chl','Starch grain','stored carbohydrate',anchor(frame, V(0.35,1.4,-0.55)),true);
-label('chl','Stroma','fluid matrix',anchor(frame, V(3.2,-0.75,0.5)),true);
-label('react','Photosystem II','2H₂O → O₂ + 4H⁺ + 4e⁻',anchor(frame, SITE.clone().add(V(0.55,0.42,0.1))));
-label('react','Calvin cycle','light-independent',anchor(frame, CC.clone().add(V(0,0.08,0))));
-label('react','RuBP · 5C','Rubisco adds CO₂',anchor(frame, ringPos(90,V(0,0,0)).add(V(0,0.16,0))));
-label('react','3-PGA · 3C','×2 per CO₂',anchor(frame, ringPos(-30,V(0,0,0)).add(V(0.42,0.0,0))),true);
-label('react','G3P · 3C','reduced by NADPH',anchor(frame, ringPos(-150,V(0,0,0)).add(V(-0.45,0.0,0))),true);
-label('react','CO₂ enters','from the air spaces',anchor(frame, V(4.0,2.85,1.7)),true);
-label('react','Glucose & organic compounds','sucrose, starch, amino acids',anchor(frame, EXPORT.clone().add(V(-0.4,-0.7,0.8))));
+label('env','Lá rộng cây C3','mô giậu nằm ngay dưới bề mặt',leafAnchor);
+label('env','O₂ ra khỏi lá','khuếch tán qua khí khổng',stomaAnchor,true);
+label('chl','Hạt grana','chồng các đĩa thylakoid',anchor(frame, FG.clone().add(V(-0.85,0.62,0))));
+label('chl','Màng bao','màng ngoài + màng trong',anchor(frame, V(-3.3,1.45,-0.6)),true);
+label('chl','Phiến stroma','nối các grana cạnh nhau',anchor(frame, V(-0.95,0.0,-0.55)),true);
+label('chl','Hạt tinh bột','cacbohiđrat dự trữ',anchor(frame, V(0.35,1.4,-0.55)),true);
+label('chl','Chất nền (stroma)','dịch nền lục lạp',anchor(frame, V(3.2,-0.75,0.5)),true);
+label('react','Hệ quang hóa II','2H₂O → O₂ + 4H⁺ + 4e⁻',anchor(frame, SITE.clone().add(V(0.55,0.42,0.1))));
+label('react','Chu trình Calvin','pha tối (không cần ánh sáng)',anchor(frame, CC.clone().add(V(0,0.08,0))));
+label('react','RuBP · 5C','Rubisco gắn CO₂',anchor(frame, ringPos(90,V(0,0,0)).add(V(0,0.16,0))));
+label('react','APG (3-PGA) · 3C','×2 cho mỗi CO₂',anchor(frame, ringPos(-30,V(0,0,0)).add(V(0.42,0.0,0))),true);
+label('react','AlPG (G3P) · 3C','khử bởi NADPH',anchor(frame, ringPos(-150,V(0,0,0)).add(V(-0.45,0.0,0))),true);
+label('react','CO₂ đi vào','từ khoảng gian bào',anchor(frame, V(4.0,2.85,1.7)),true);
+label('react','Glucose & chất hữu cơ','saccarozơ, tinh bột, axit amin',anchor(frame, EXPORT.clone().add(V(-0.4,-0.7,0.8))));
 
 const layerOn = { env:true, chl:true, react:true };
 const proj=V(0,0,0), framePos=V(0,0,0);
@@ -773,7 +773,7 @@ resize(); goTo(homeView(), true);
 /* ---------- UI ---------- */
 let playing = !reduceMotion, speed=1, spin=!reduceMotion, angle=0;
 const playBtn=$('#play'), spinChk=$('#spin'), angleIn=$('#angle'), angleOut=$('#angleOut'), speedIn=$('#speed'), speedOut=$('#speedOut');
-function setPlay(p){ playing=p; playBtn.textContent=p?'Pause':'Play'; }
+function setPlay(p){ playing=p; playBtn.textContent=p?'Tạm dừng':'Phát'; }
 setPlay(playing); spinChk.checked=spin;
 if(reduceMotion) $('#motionNote').hidden=false;
 playBtn.addEventListener('click', ()=>setPlay(!playing));

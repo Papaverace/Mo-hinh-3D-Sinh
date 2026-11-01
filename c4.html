@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Maize C4 Explorer</title>
+<title>Quang hợp ở thực vật C4 – Cây ngô</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: full-bleed 3D stage; a floating instrument panel on the right (bottom sheet on phones); labels float over the scene. Deliberately single dark theme, like a microscope bench. */
 :root{
@@ -22,7 +22,7 @@
   --chloro:#7cc35f;
   --m-co2:#d3dde0; --m-pep:#8be063; --m-oaa:#ff9b5e; --m-mal:#c697ff; --m-pyr:#52d6e6;
   --m-atp:#ffd54f; --m-adp:#c0913c; --m-amp:#c0913c; --m-nadph:#71abff; --m-glc:#fff1bd;
-  --display:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --display:"Playfair Display", "Iowan Old Style", Georgia, serif;
   --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   color-scheme:dark;
@@ -120,22 +120,22 @@ table.budget th{font:500 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transf
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
-<canvas id="stage" tabindex="0" aria-label="3D model of a maize plant and leaf cross-section"></canvas>
+<canvas id="stage" tabindex="0" aria-label="Mô hình 3D cây ngô và lát cắt ngang lá"></canvas>
 <div id="labels"><svg id="leaders" aria-hidden="true"></svg></div>
-<div id="fade"><p id="fadeText">Cutting a transverse section…</p></div>
+<div id="fade"><p id="fadeText">Đang cắt lát ngang…</p></div>
 
 <div class="hud">
   <header class="head">
-    <div class="eyebrow"><i>Zea mays</i> · NADP-ME type C4</div>
-    <h1>Maize <em>C4</em> Explorer</h1>
-    <nav class="tabs" role="tablist" aria-label="Zoom level">
-      <button class="tab" role="tab" data-mode="plant" aria-selected="true"><span>1</span>Plant</button>
-      <button class="tab" role="tab" data-mode="kranz" aria-selected="false"><span>2</span>Kranz anatomy</button>
-      <button class="tab" role="tab" data-mode="pathway" aria-selected="false"><span>3</span>C4 pathway</button>
+    <div class="eyebrow"><i>Zea mays</i> · C4 kiểu NADP-ME</div>
+    <h1>Khám phá ngô <em>C4</em></h1>
+    <nav class="tabs" role="tablist" aria-label="Mức phóng to">
+      <button class="tab" role="tab" data-mode="plant" aria-selected="true"><span>1</span>Cây</button>
+      <button class="tab" role="tab" data-mode="kranz" aria-selected="false"><span>2</span>Giải phẫu Kranz</button>
+      <button class="tab" role="tab" data-mode="pathway" aria-selected="false"><span>3</span>Con đường C4</button>
     </nav>
   </header>
   <aside class="panel" id="panel" aria-live="polite"></aside>
-  <div class="hint" id="hint">Drag to orbit · scroll or pinch to zoom</div>
+  <div class="hint" id="hint">Kéo để xoay · cuộn hoặc chụm để phóng to</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -144,14 +144,14 @@ table.budget th{font:500 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transf
 (function(){
 "use strict";
 if(!window.THREE || !THREE.OrbitControls){
-  document.body.insertAdjacentHTML('beforeend','<div id="err"><p>The 3D library could not load. Check your connection and reload the page.</p></div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="err"><p>Không tải được thư viện 3D. Hãy kiểm tra kết nối mạng và tải lại trang.</p></div>');
   return;
 }
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const canvas = document.getElementById('stage');
 let renderer;
 try{ renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'}); }
-catch(e){ document.body.insertAdjacentHTML('beforeend','<div id="err"><p>This browser could not start WebGL, which the 3D model needs.</p></div>'); return; }
+catch(e){ document.body.insertAdjacentHTML('beforeend','<div id="err"><p>Trình duyệt này không khởi động được WebGL mà mô hình 3D cần.</p></div>'); return; }
 const PR = Math.min(devicePixelRatio||1, 2);
 renderer.setPixelRatio(PR);
 renderer.outputEncoding = THREE.sRGBEncoding;
@@ -603,8 +603,8 @@ function anchor(parent,x,y,z){ const o=new THREE.Object3D(); o.position.set(x,y,
 
 /* ================= LAYER 3: BIOCHEMICAL FLOW ================= */
 const MOL={
-  co2:{hex:'#d3dde0',name:'CO₂'}, pep:{hex:'#8be063',name:'PEP'}, oaa:{hex:'#ff9b5e',name:'OAA'}, mal:{hex:'#c697ff',name:'Malate'},
-  pyr:{hex:'#52d6e6',name:'Pyruvate'}, atp:{hex:'#ffd54f',name:'ATP'}, adp:{hex:'#c0913c',name:'ADP + Pi'}, amp:{hex:'#c0913c',name:'AMP + PPi'},
+  co2:{hex:'#d3dde0',name:'CO₂'}, pep:{hex:'#8be063',name:'PEP'}, oaa:{hex:'#ff9b5e',name:'OAA'}, mal:{hex:'#c697ff',name:'Malat'},
+  pyr:{hex:'#52d6e6',name:'Pyruvat'}, atp:{hex:'#ffd54f',name:'ATP'}, adp:{hex:'#c0913c',name:'ADP + Pi'}, amp:{hex:'#c0913c',name:'AMP + PPi'},
   nadph:{hex:'#71abff',name:'NADPH'}, glc:{hex:'#fff1bd',name:'Glucose'}
 };
 Object.values(MOL).forEach(m=>m.c=new THREE.Color(m.hex));
@@ -645,33 +645,33 @@ Object.entries(PATHS).forEach(([k,p])=>{
   p.target=0.16; PW.add(p.tube);
 });
 const STEPS=[
-  {n:1,key:'PEPC',color:'#d3dde0',node:NA,off:[-150,60],title:'CO₂ captured by PEP carboxylase',where:'Mesophyll cytosol',
-   eq:'HCO₃⁻ + PEP → OAA + Pi',enzyme:'PEP carboxylase (PEPC), after carbonic anhydrase',
-   text:'CO₂ diffuses in through the stoma and air spaces. Carbonic anhydrase turns it into bicarbonate, which PEPC attaches to PEP. PEPC does not react with O₂, so this first fixation loses no carbon to photorespiration.',
+  {n:1,key:'PEPC',color:'#d3dde0',node:NA,off:[-150,60],title:'PEP carboxylase bắt giữ CO₂',zone:'Mô giậu',where:'Tế bào chất – tế bào mô giậu',
+   eq:'HCO₃⁻ + PEP → OAA + Pi',enzyme:'PEP carboxylase (PEPC), sau carbonic anhydrase',
+   text:'CO₂ khuếch tán vào qua khí khổng và khoảng gian bào. Carbonic anhydrase chuyển CO₂ thành bicacbonat, rồi PEPC gắn nó vào PEP. PEPC không phản ứng với O₂ nên lần cố định đầu tiên này không mất cacbon do hô hấp sáng.',
    bursts:[['co2in','co2',8,0],['pepRet','pep',3,0],['oaa','oaa',5,2.4]]},
-  {n:2,key:'MDH',color:'#ff9b5e',node:NB,off:[-40,125],title:'OAA reduced to malate',where:'Mesophyll chloroplast',
-   eq:'OAA + NADPH → malate + NADP⁺',enzyme:'NADP-malate dehydrogenase',
-   text:'OAA moves into the mesophyll chloroplast and is reduced with NADPH from the light reactions. Malate is the stable four-carbon carrier maize uses to ship fixed carbon inward.',
+  {n:2,key:'MDH',color:'#ff9b5e',node:NB,off:[-40,125],title:'OAA bị khử thành malat',zone:'Mô giậu',where:'Lục lạp tế bào mô giậu',
+   eq:'OAA + NADPH → malat + NADP⁺',enzyme:'NADP-malate dehydrogenase',
+   text:'OAA đi vào lục lạp tế bào mô giậu và bị khử bởi NADPH từ pha sáng. Malat là chất mang 4 cacbon bền vững mà ngô dùng để chuyển cacbon đã cố định vào bên trong.',
    bursts:[['oaa','oaa',5,0],['nadphM','nadph',3,0.2],['malA','mal',6,0.9]]},
-  {n:3,key:'Plasmodesmata',color:'#c697ff',node:C1,off:[80,140],title:'Malate crosses into the bundle sheath',where:'Shared cell wall',
-   eq:'malate (mesophyll) → malate (bundle sheath)',enzyme:'Diffusion through plasmodesmata',
-   text:'Malate diffuses down its concentration gradient through plasmodesmata in the shared wall. The bundle-sheath wall carries a suberized layer that slows CO₂ from leaking back out.',
+  {n:3,key:'Plasmodesmata',color:'#c697ff',node:C1,off:[80,140],title:'Malat đi vào tế bào bao bó mạch',zone:'Thành TB',where:'Thành tế bào chung',
+   eq:'malat (mô giậu) → malat (bao bó mạch)',enzyme:'Khuếch tán qua cầu sinh chất',
+   text:'Malat khuếch tán theo gradien nồng độ qua cầu sinh chất ở thành tế bào chung. Thành tế bào bao bó mạch có lớp suberin làm chậm CO₂ rò rỉ ngược ra ngoài.',
    bursts:[['malA','mal',4,0],['malT','mal',7,0.4]]},
-  {n:4,key:'NADP-ME',color:'#c697ff',node:ND,off:[175,75],title:'Malate releases its CO₂',where:'Bundle sheath chloroplast',
-   eq:'malate + NADP⁺ → pyruvate + CO₂ + NADPH',enzyme:'NADP-malic enzyme (NADP-ME)',
-   text:'Decarboxylation frees CO₂ right beside Rubisco and supplies NADPH for the Calvin cycle. CO₂ in the bundle sheath builds to several times the level in outside air.',
+  {n:4,key:'NADP-ME',color:'#c697ff',node:ND,off:[175,75],title:'Malat giải phóng CO₂',zone:'Bao bó mạch',where:'Lục lạp tế bào bao bó mạch',
+   eq:'malat + NADP⁺ → pyruvat + CO₂ + NADPH',enzyme:'NADP-malic enzyme (NADP-ME)',
+   text:'Phản ứng khử cacboxyl giải phóng CO₂ ngay cạnh Rubisco và cung cấp NADPH cho chu trình Calvin. Nồng độ CO₂ trong bao bó mạch tăng lên gấp nhiều lần so với không khí bên ngoài.',
    bursts:[['malT','mal',3,0],['co2bs','co2',7,0.7],['nadphBS','nadph',4,0.8],['pyrOut','pyr',5,0.9]]},
-  {n:5,key:'Calvin cycle',color:'#ffd54f',node:NE,off:[175,-45],title:'Rubisco fixes the CO₂ a second time',where:'Bundle sheath chloroplast',
-   eq:'CO₂ + RuBP → 2 × 3-PGA',enzyme:'Rubisco, then the Calvin cycle (3 ATP + 2 NADPH per CO₂)',
-   text:'With CO₂ concentrated around Rubisco, its wasteful reaction with O₂ is largely suppressed. ATP is spent to ADP + Pi as 3-PGA is reduced to triose phosphate and RuBP is regenerated.',
+  {n:5,key:'Chu trình Calvin',color:'#ffd54f',node:NE,off:[175,-45],title:'Rubisco cố định CO₂ lần thứ hai',zone:'Bao bó mạch',where:'Lục lạp tế bào bao bó mạch',
+   eq:'CO₂ + RuBP → 2 × 3-PGA',enzyme:'Rubisco, sau đó là chu trình Calvin (3 ATP + 2 NADPH mỗi CO₂)',
+   text:'Khi CO₂ được tập trung quanh Rubisco, phản ứng lãng phí của nó với O₂ hầu như bị ức chế. ATP bị dùng thành ADP + Pi khi 3-PGA bị khử thành triose phosphat và RuBP được tái tạo.',
    bursts:[['co2bs','co2',3,0],['calvin','co2',7,0.3,2],['atpBS','atp',6,0.2],['nadphBS','nadph',3,0.4],['adpBS','adp',6,1.4]]},
-  {n:6,key:'Sugar → phloem',color:'#fff1bd',node:NP,off:[40,-115],title:'Sugar exported to the phloem',where:'Bundle sheath → phloem',
-   eq:'6 CO₂ fixed → 1 C₆H₁₂O₆ equivalent',enzyme:'Triose phosphate → sucrose',
-   text:'Triose phosphate leaves the cycle and is built into sugar, which the phloem carries to the ear and roots. Shown here as one direct route; in maize much of the sucrose is actually assembled in mesophyll cytosol before phloem loading.',
+  {n:6,key:'Đường → mạch rây',color:'#fff1bd',node:NP,off:[40,-115],title:'Đường được chuyển vào mạch rây',zone:'Mạch rây',where:'Bao bó mạch → mạch rây',
+   eq:'6 CO₂ cố định → tương đương 1 C₆H₁₂O₆',enzyme:'Triose phosphat → saccarozơ',
+   text:'Triose phosphat rời chu trình và được tổng hợp thành đường, mạch rây vận chuyển đường đến bắp và rễ. Ở đây vẽ thành một đường đi thẳng; thực tế ở ngô, phần lớn saccarozơ được tổng hợp trong tế bào chất mô giậu trước khi vào mạch rây.',
    bursts:[['calvin','glc',3,0,1],['glc','glc',8,0.8]]},
-  {n:7,key:'PPDK',color:'#52d6e6',node:NG,off:[-160,-55],title:'Pyruvate returns and PEP is rebuilt',where:'Mesophyll chloroplast',
-   eq:'pyruvate + ATP + Pi → PEP + AMP + PPi',enzyme:'Pyruvate, phosphate dikinase (PPDK)',
-   text:'Pyruvate diffuses back to the mesophyll. PPDK rebuilds PEP by splitting ATP all the way to AMP, which costs two ATP equivalents. That is the price of the CO₂ pump, and the loop is ready to fix again.',
+  {n:7,key:'PPDK',color:'#52d6e6',node:NG,off:[-160,-55],title:'Pyruvat quay lại, PEP được tái tạo',zone:'Mô giậu',where:'Lục lạp tế bào mô giậu',
+   eq:'pyruvat + ATP + Pi → PEP + AMP + PPi',enzyme:'Pyruvat, phosphat dikinase (PPDK)',
+   text:'Pyruvat khuếch tán trở lại tế bào mô giậu. PPDK tái tạo PEP bằng cách phân giải ATP thành AMP, tốn tương đương hai ATP. Đó là cái giá của “bơm CO₂”, và vòng tuần hoàn sẵn sàng cố định CO₂ tiếp.',
    bursts:[['pyrOut','pyr',3,0],['pyrIn','pyr',5,0.5],['atpM','atp',4,0.6],['ampM','amp',4,1.7],['pepRet','pep',5,1.9]]}
 ];
 const nodeDots=STEPS.map(s=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(0.014,16,12),new THREE.MeshBasicMaterial({color:lin(s.color)})); m.position.copy(s.node); PW.add(m); return m; });
@@ -753,7 +753,7 @@ const labels=[];
 function addLabel({text,sub,anchor,pos,modes,off=[0,-50],node,step}){
   const el=document.createElement(node?'button':'div');
   el.className=node?'node':'lbl';
-  if(node){ el.type='button'; el.style.setProperty('--nc',step.color); el.innerHTML=`<b>${step.n}</b>${text}`; el.setAttribute('aria-label',`Step ${step.n}: ${step.title}`); el.addEventListener('click',e=>{e.stopPropagation(); stopPlay(); runStep(step.n-1);}); }
+  if(node){ el.type='button'; el.style.setProperty('--nc',step.color); el.innerHTML=`<b>${step.n}</b>${text}`; el.setAttribute('aria-label',`Bước ${step.n}: ${step.title}`); el.addEventListener('click',e=>{e.stopPropagation(); stopPlay(); runStep(step.n-1);}); }
   else el.innerHTML=text+(sub?`<small>${sub}</small>`:'');
   el.hidden=true; labelLayer.appendChild(el);
   const line=document.createElementNS(SVGNS,'line'); line.setAttribute('stroke','rgba(225,238,222,.5)'); line.setAttribute('stroke-width','1');
@@ -762,25 +762,25 @@ function addLabel({text,sub,anchor,pos,modes,off=[0,-50],node,step}){
   const L={el,line,dot,anchor,pos,modes,off,node,step,w:0,h:0}; labels.push(L); return L;
 }
 // plant labels
-addLabel({text:'Tassel',sub:'male flowers, sheds pollen',anchor:tasselAnchor,modes:['plant'],off:[90,-30]});
-addLabel({text:'Ear with silks',sub:'female flower, becomes the cob',anchor:earAnchors[0],modes:['plant'],off:[110,40]});
-addLabel({text:'Leaf blade',sub:'parallel veins · click to section',fn:null,anchor:(()=>{const a=new THREE.Object3D(); heroLeaves[7].add(a); const g=heroLeaves[7].geometry, idx=Math.round(0.6*34)*7+3; a.position.set(g.attributes.position.getX(idx),g.attributes.position.getY(idx),g.attributes.position.getZ(idx)); return a;})(),modes:['plant'],off:[-120,-40]});
-addLabel({text:'Brace roots',sub:'prop roots from lower nodes',anchor:(()=>{const a=new THREE.Object3D(); a.position.set(0.3,0.08,0.15); HERO.add(a); return a;})(),modes:['plant'],off:[110,10]});
+addLabel({text:'Bông cờ',sub:'hoa đực, tung phấn',anchor:tasselAnchor,modes:['plant'],off:[90,-30]});
+addLabel({text:'Bắp có râu',sub:'hoa cái, phát triển thành bắp',anchor:earAnchors[0],modes:['plant'],off:[110,40]});
+addLabel({text:'Phiến lá',sub:'gân song song · bấm để cắt lát',fn:null,anchor:(()=>{const a=new THREE.Object3D(); heroLeaves[7].add(a); const g=heroLeaves[7].geometry, idx=Math.round(0.6*34)*7+3; a.position.set(g.attributes.position.getX(idx),g.attributes.position.getY(idx),g.attributes.position.getZ(idx)); return a;})(),modes:['plant'],off:[-120,-40]});
+addLabel({text:'Rễ chống',sub:'mọc từ các đốt thân dưới',anchor:(()=>{const a=new THREE.Object3D(); a.position.set(0.3,0.08,0.15); HERO.add(a); return a;})(),modes:['plant'],off:[110,10]});
 // kranz labels
-addLabel({text:'Upper epidermis',sub:'waxy cuticle',anchor:anchor(gEpi,-5.0,1.79),modes:['kranz'],off:[-30,-55]});
-addLabel({text:'Bulliform cells',sub:'roll the leaf in drought',anchor:anchor(gEpi,-3.8,1.79),modes:['kranz'],off:[40,-75]});
-addLabel({text:'Mesophyll cell',sub:'PEP carboxylase',anchor:anchor(gMeso,-1.9-0.966,0.87),modes:['kranz'],off:[-70,-110]});
-addLabel({text:'Bundle sheath cell',sub:'Rubisco · Calvin cycle',anchor:anchor(gBS,-1.9-0.48,0.57),modes:['kranz'],off:[-150,10]});
-addLabel({text:'Xylem vessel',sub:'water up',anchor:anchor(gVasc,-1.7,0.12),modes:['kranz'],off:[60,-95]});
-addLabel({text:'Phloem',sub:'sugar out',anchor:anchor(gVasc,-1.9,-0.24),modes:['kranz'],off:[70,95]});
-addLabel({text:'Stoma',sub:'CO₂ enters here',anchor:anchor(gEpi,0,-1.72),modes:['kranz'],off:[0,60]});
-addLabel({text:'Substomatal cavity',anchor:anchor(cellScene,0,-1.25),modes:['kranz'],off:[-110,40]});
-addLabel({text:'Lower epidermis',anchor:anchor(gEpi,-5.0,-1.79),modes:['kranz'],off:[-20,55]});
-addLabel({text:'Kranz wreath',sub:'two concentric rings',anchor:anchor(gBS,5.7,0.75),modes:['kranz'],off:[30,-120]});
+addLabel({text:'Biểu bì trên',sub:'lớp cutin sáp',anchor:anchor(gEpi,-5.0,1.79),modes:['kranz'],off:[-30,-55]});
+addLabel({text:'Tế bào vận động',sub:'cuộn lá khi hạn',anchor:anchor(gEpi,-3.8,1.79),modes:['kranz'],off:[40,-75]});
+addLabel({text:'Tế bào mô giậu',sub:'PEP carboxylase',anchor:anchor(gMeso,-1.9-0.966,0.87),modes:['kranz'],off:[-70,-110]});
+addLabel({text:'Tế bào bao bó mạch',sub:'Rubisco · chu trình Calvin',anchor:anchor(gBS,-1.9-0.48,0.57),modes:['kranz'],off:[-150,10]});
+addLabel({text:'Mạch gỗ',sub:'dẫn nước lên',anchor:anchor(gVasc,-1.7,0.12),modes:['kranz'],off:[60,-95]});
+addLabel({text:'Mạch rây',sub:'dẫn đường đi',anchor:anchor(gVasc,-1.9,-0.24),modes:['kranz'],off:[70,95]});
+addLabel({text:'Khí khổng',sub:'CO₂ đi vào tại đây',anchor:anchor(gEpi,0,-1.72),modes:['kranz'],off:[0,60]});
+addLabel({text:'Khoang dưới khí khổng',anchor:anchor(cellScene,0,-1.25),modes:['kranz'],off:[-110,40]});
+addLabel({text:'Biểu bì dưới',anchor:anchor(gEpi,-5.0,-1.79),modes:['kranz'],off:[-20,55]});
+addLabel({text:'Vòng Kranz',sub:'hai vòng tế bào đồng tâm',anchor:anchor(gBS,5.7,0.75),modes:['kranz'],off:[30,-120]});
 // pathway labels
-addLabel({text:'Mesophyll cell',anchor:anchor(cellScene,Mc.x,Mc.y+0.27,Z),modes:['pathway'],off:[-40,-130]});
-addLabel({text:'Bundle sheath cell',anchor:anchor(cellScene,Bc.x,Bc.y+0.26,Z),modes:['pathway'],off:[40,-150]});
-addLabel({text:'Stoma',anchor:anchor(cellScene,0,-1.72,Z),modes:['pathway'],off:[-70,0]});
+addLabel({text:'Tế bào mô giậu',anchor:anchor(cellScene,Mc.x,Mc.y+0.27,Z),modes:['pathway'],off:[-40,-130]});
+addLabel({text:'Tế bào bao bó mạch',anchor:anchor(cellScene,Bc.x,Bc.y+0.26,Z),modes:['pathway'],off:[40,-150]});
+addLabel({text:'Khí khổng',anchor:anchor(cellScene,0,-1.72,Z),modes:['pathway'],off:[-70,0]});
 const nodeLabels=STEPS.map(s=>addLabel({text:s.key,node:true,step:s,anchor:anchor(cellScene,s.node.x,s.node.y,Z),modes:['pathway'],off:s.off}));
 
 let VW=innerWidth, VH=innerHeight;
@@ -859,7 +859,7 @@ async function go(next,opts={}){
     const hit=opts.hit||leafPointWorld(heroLeaves[5],0.55);
     lastLeafHit=hit;
     await flyTo(hit.point.clone().add(hit.normal.clone().multiplyScalar(0.22)),hit.point,1.35);
-    await fade(true,'Cutting a transverse section…');
+    await fade(true,'Đang cắt lát ngang…');
     activeScene=cellScene; mode=next; renderPanel(); layout(); applyMode();
     camera.position.set(10,15,36); controls.target.set(0,0,-1.6); camera.lookAt(controls.target);
     await fade(false);
@@ -867,7 +867,7 @@ async function go(next,opts={}){
     if(next==='pathway'){ const v2=VIEWS.pathway(); await flyTo(v2.p,v2.t,1.6); }
   } else if(next==='plant'){
     const v=VIEWS.kranz(); await flyTo(v.p.clone().multiplyScalar(2.2),v.t,1.0);
-    await fade(true,'Back to the field…');
+    await fade(true,'Quay lại cánh đồng…');
     activeScene=plantScene; mode=next; renderPanel(); layout(); applyMode();
     const hit=lastLeafHit||leafPointWorld(heroLeaves[5],0.55);
     camera.position.copy(hit.point.clone().add(hit.normal.clone().multiplyScalar(0.3))); controls.target.copy(hit.point); camera.lookAt(hit.point);
@@ -888,7 +888,7 @@ function applyMode(){
   focusRings.forEach(r=>r.material.opacity=0);
   if(mode==='pathway'){ [gEpi,gMeso,gBS,gVasc].forEach(g=>g.visible=true); }
   else if(mode==='kranz'){ gEpi.visible=layerVis.epi; gMeso.visible=layerVis.meso; gBS.visible=layerVis.bs; gVasc.visible=layerVis.vasc; }
-  document.getElementById('hint').textContent = mode==='plant' ? 'Drag to orbit · click a leaf to section it' : mode==='kranz' ? 'Drag to orbit · click a cell to identify it' : 'Click a numbered node to run that reaction';
+  document.getElementById('hint').textContent = mode==='plant' ? 'Kéo để xoay · bấm vào lá để cắt lát' : mode==='kranz' ? 'Kéo để xoay · bấm vào tế bào để xem tên' : 'Bấm vào nút có số để chạy phản ứng đó';
 }
 function setTabs(m){ document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.mode===m))); }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.mode)));
@@ -897,67 +897,67 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>go(t
 let explodeSetting=0, windSetting=1, selectedTissue=null, activeStep=-1, playing=false, playTimer=null;
 const layerVis={epi:true,meso:true,bs:true,vasc:true};
 const TISSUE={
-  mesophyll:['Mesophyll cell','Outer wreath','Loosely packed cells radiating around each bundle sheath. In maize they hold PEP carboxylase in the cytosol and grana-rich chloroplasts, but almost no Rubisco. No mesophyll cell sits more than about two cells from a bundle sheath.'],
-  bundle:['Bundle sheath cell','Inner wreath','Large, thick-walled cells ringing each vein. Their chloroplasts crowd toward the outer wall and, in maize, are nearly agranal, because NADPH arrives in malate rather than from photosystem II. Rubisco and the Calvin cycle work here.'],
-  xylem:['Xylem vessel','Vascular bundle, upper side','Dead, lignified tubes that carry water and minerals from the roots. They sit on the upper (adaxial) side of each bundle.'],
-  phloem:['Phloem','Vascular bundle, lower side','Sieve tubes and companion cells on the lower (abaxial) side. They load sugar made in the leaf and carry it to the ear, stalk and roots.'],
-  parenchyma:['Vascular parenchyma','Inside the bundle','Living packing cells between xylem and phloem that help move solutes into the conducting cells.'],
-  epidermis:['Epidermis','Outer layer','A single cell layer covered in waxy cuticle that limits water loss.'],
-  bulliform:['Bulliform cells','Upper epidermis','Large, thin-walled cells between veins. When they lose water the leaf rolls inward, a grass response to drought and heat.'],
-  stoma:['Stoma','Lower epidermis','A pore between two dumbbell-shaped guard cells, flanked by subsidiary cells, as in all grasses. CO₂ enters here into the substomatal cavity.']
+  mesophyll:['Tế bào mô giậu','Vòng ngoài','Các tế bào xếp thưa, tỏa tròn quanh mỗi bao bó mạch. Ở ngô, chúng chứa PEP carboxylase trong tế bào chất và lục lạp nhiều grana, nhưng hầu như không có Rubisco. Không tế bào mô giậu nào cách bao bó mạch quá khoảng hai tế bào.'],
+  bundle:['Tế bào bao bó mạch','Vòng trong','Tế bào lớn, thành dày, bao quanh mỗi gân lá. Lục lạp tập trung về phía thành ngoài và ở ngô gần như không có grana, vì NADPH đến từ malat chứ không từ hệ quang hóa II. Rubisco và chu trình Calvin hoạt động ở đây.'],
+  xylem:['Mạch gỗ','Bó mạch, phía trên','Các ống chết, hóa gỗ (lignin), dẫn nước và khoáng từ rễ lên. Nằm ở phía trên (mặt bụng) của mỗi bó mạch.'],
+  phloem:['Mạch rây','Bó mạch, phía dưới','Ống rây và tế bào kèm ở phía dưới (mặt lưng). Chúng nhận đường tạo ra ở lá và vận chuyển đến bắp, thân và rễ.'],
+  parenchyma:['Nhu mô mạch','Bên trong bó mạch','Các tế bào sống lấp đầy giữa mạch gỗ và mạch rây, giúp chuyển chất tan vào các tế bào dẫn.'],
+  epidermis:['Biểu bì','Lớp ngoài cùng','Một lớp tế bào phủ lớp cutin sáp giúp hạn chế mất nước.'],
+  bulliform:['Tế bào vận động (bulliform)','Biểu bì trên','Tế bào lớn, thành mỏng nằm giữa các gân. Khi mất nước, lá cuộn vào trong – phản ứng của cây họ lúa với hạn và nóng.'],
+  stoma:['Khí khổng','Biểu bì dưới','Lỗ giữa hai tế bào hạt đậu hình quả tạ, hai bên có tế bào phụ, giống mọi cây họ lúa. CO₂ đi vào khoang dưới khí khổng qua đây.']
 };
 function legendHTML(){ return ['co2','pep','oaa','mal','pyr','atp','adp','amp','nadph','glc'].map(k=>`<span><i class="dot" style="background:${MOL[k].hex};color:${MOL[k].hex}"></i>${MOL[k].name}</span>`).join(''); }
 function renderPanel(){
   if(mode==='plant'){
     panel.innerHTML=`
-      <div class="eyebrow">Layer 1 · Whole plant</div>
-      <h2>A C4 grass in field light</h2>
-      <p>Maize fixes carbon twice. A pump in the outer leaf cells packs CO₂ into an inner ring of cells, so Rubisco keeps working at high CO₂ even when stomata partly close in the heat.</p>
-      <div class="row"><button class="btn primary" data-act="cut">Cut a leaf section</button></div>
-      <p class="note">Or click any leaf on the plant to zoom into it.</p>
+      <div class="eyebrow">Lớp 1 · Toàn cây</div>
+      <h2>Cây C4 họ lúa ngoài đồng</h2>
+      <p>Ngô cố định cacbon hai lần. Một “bơm” ở các tế bào vòng ngoài dồn CO₂ vào vòng tế bào bên trong, nhờ đó Rubisco vẫn hoạt động ở nồng độ CO₂ cao ngay cả khi khí khổng khép bớt lúc trời nóng.</p>
+      <div class="row"><button class="btn primary" data-act="cut">Cắt lát lá</button></div>
+      <p class="note">Hoặc bấm vào một lá bất kỳ trên cây để phóng to.</p>
       <div class="ctrl">
-        <label for="wind">Wind<input id="wind" type="range" min="0" max="2" step="0.05" value="${windSetting}"><output id="windO">${windSetting.toFixed(2)}</output></label>
-        <label for="sun">Sun height<input id="sun" type="range" min="6" max="70" step="1" value="${sunElev}"><output id="sunO">${sunElev}°</output></label>
+        <label for="wind">Gió<input id="wind" type="range" min="0" max="2" step="0.05" value="${windSetting}"><output id="windO">${windSetting.toFixed(2)}</output></label>
+        <label for="sun">Độ cao mặt trời<input id="sun" type="range" min="6" max="70" step="1" value="${sunElev}"><output id="sunO">${sunElev}°</output></label>
       </div>
-      <p class="note">Lower the sun to see light pass through the leaf blades. The glow is the green light chlorophyll does not absorb.</p>
+      <p class="note">Hạ thấp mặt trời để thấy ánh sáng xuyên qua phiến lá. Vầng sáng xanh lục là phần ánh sáng mà diệp lục không hấp thụ.</p>
       <dl class="facts">
-        <dt>Pathway</dt><dd>C4, NADP-malic enzyme subtype</dd>
-        <dt>Leaf veins</dt><dd>Parallel, closely spaced</dd>
-        <dt>Leaf arrangement</dt><dd>Two ranks, alternating sides</dd>
-        <dt>Flowers</dt><dd>Male tassel on top, female ears at the nodes</dd>
+        <dt>Con đường</dt><dd>C4, kiểu enzyme NADP-malic</dd>
+        <dt>Gân lá</dt><dd>Song song, xếp sát nhau</dd>
+        <dt>Cách mọc lá</dt><dd>Mọc cách, xếp thành hai dãy</dd>
+        <dt>Hoa</dt><dd>Bông cờ (đực) ở ngọn, bắp (cái) ở các đốt</dd>
       </dl>`;
   } else if(mode==='kranz'){
     const t=selectedTissue&&TISSUE[selectedTissue];
     panel.innerHTML=`
-      <div class="eyebrow">Layer 2 · Kranz anatomy</div>
-      <h2>Two rings of cells around every vein</h2>
-      <p><em>Kranz</em> is German for wreath. Bundle sheath cells form the inner wreath around each vein, and mesophyll cells radiate around them. The two cell types split photosynthesis between them.</p>
-      ${t?`<div class="card"><div class="where">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p></div>`:`<div class="card"><h3>Identify a cell</h3><p>Click any cell in the cross-section to see what it does.</p></div>`}
-      <div class="sec">Mesh layers</div>
+      <div class="eyebrow">Lớp 2 · Giải phẫu Kranz</div>
+      <h2>Hai vòng tế bào quanh mỗi gân lá</h2>
+      <p><em>Kranz</em> trong tiếng Đức nghĩa là “vòng hoa”. Tế bào bao bó mạch tạo vòng trong quanh mỗi gân lá, tế bào mô giậu tỏa tròn bên ngoài. Hai loại tế bào chia nhau thực hiện quang hợp.</p>
+      ${t?`<div class="card"><div class="where">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p></div>`:`<div class="card"><h3>Nhận biết tế bào</h3><p>Bấm vào một tế bào bất kỳ trên lát cắt để xem chức năng.</p></div>`}
+      <div class="sec">Các lớp mô</div>
       <div class="checks">
-        <label><input type="checkbox" data-layer="epi" ${layerVis.epi?'checked':''}><i class="sw" style="background:#a7c98b"></i>Epidermis</label>
-        <label><input type="checkbox" data-layer="meso" ${layerVis.meso?'checked':''}><i class="sw" style="background:#7fbf5f"></i>Mesophyll</label>
-        <label><input type="checkbox" data-layer="bs" ${layerVis.bs?'checked':''}><i class="sw" style="background:#4f8f3d"></i>Bundle sheath</label>
-        <label><input type="checkbox" data-layer="vasc" ${layerVis.vasc?'checked':''}><i class="sw" style="background:#cf9271"></i>Vascular</label>
+        <label><input type="checkbox" data-layer="epi" ${layerVis.epi?'checked':''}><i class="sw" style="background:#a7c98b"></i>Biểu bì</label>
+        <label><input type="checkbox" data-layer="meso" ${layerVis.meso?'checked':''}><i class="sw" style="background:#7fbf5f"></i>Mô giậu</label>
+        <label><input type="checkbox" data-layer="bs" ${layerVis.bs?'checked':''}><i class="sw" style="background:#4f8f3d"></i>Bao bó mạch</label>
+        <label><input type="checkbox" data-layer="vasc" ${layerVis.vasc?'checked':''}><i class="sw" style="background:#cf9271"></i>Bó mạch</label>
       </div>
-      <div class="ctrl"><label for="explode">Explode layers<input id="explode" type="range" min="0" max="1" step="0.01" value="${explodeSetting}"><output id="explodeO">${Math.round(explodeSetting*100)}%</output></label></div>
-      <div class="row"><button class="btn primary" data-act="trace">Trace the C4 pathway</button><button class="btn" data-act="plant">Back to plant</button></div>
-      <p class="note">Shown as a block of leaf cut across four veins. Cells extend back along the leaf, so each one is a column.</p>`;
+      <div class="ctrl"><label for="explode">Tách lớp<input id="explode" type="range" min="0" max="1" step="0.01" value="${explodeSetting}"><output id="explodeO">${Math.round(explodeSetting*100)}%</output></label></div>
+      <div class="row"><button class="btn primary" data-act="trace">Theo dõi con đường C4</button><button class="btn" data-act="plant">Quay lại cây</button></div>
+      <p class="note">Mô hình là một khối lá cắt ngang qua bốn gân. Tế bào kéo dài dọc theo lá nên mỗi tế bào là một cột.</p>`;
   } else {
     const s=STEPS[activeStep];
     panel.innerHTML=`
-      <div class="eyebrow">Layer 3 · Biochemical flow</div>
-      <h2>The two-stage fixation loop</h2>
-      <p>Click a numbered node in the scene or a step below. Particles show each molecule moving between the two cells.</p>
-      <div class="row"><button class="btn primary" data-act="play">${playing?'Stop':'Play full cycle'}</button><button class="btn" data-act="kranz">Back to anatomy</button></div>
-      <ol class="steps">${STEPS.map((x,i)=>`<li><button class="step ${i===activeStep?'on':''}" data-step="${i}" style="--sc:${x.color}"><b>${x.n}</b>${x.title}<em>${x.where.split(' ')[0]}</em></button></li>`).join('')}</ol>
+      <div class="eyebrow">Lớp 3 · Dòng sinh hóa</div>
+      <h2>Vòng cố định CO₂ hai giai đoạn</h2>
+      <p>Bấm vào nút có số trong mô hình hoặc một bước bên dưới. Các hạt sáng thể hiện từng phân tử di chuyển giữa hai loại tế bào.</p>
+      <div class="row"><button class="btn primary" data-act="play">${playing?'Dừng':'Chạy cả chu trình'}</button><button class="btn" data-act="kranz">Quay lại giải phẫu</button></div>
+      <ol class="steps">${STEPS.map((x,i)=>`<li><button class="step ${i===activeStep?'on':''}" data-step="${i}" style="--sc:${x.color}"><b>${x.n}</b>${x.title}<em>${x.zone||x.where}</em></button></li>`).join('')}</ol>
       ${s?`<div class="card"><div class="where">${s.where}</div><h3>${s.title}</h3><div class="eq">${s.eq}</div><div class="enz">Enzyme: <strong>${s.enzyme}</strong></div><p>${s.text}</p></div>`:''}
-      <div class="sec">Molecules</div>
+      <div class="sec">Phân tử</div>
       <div class="legend">${legendHTML()}</div>
-      <div class="sec">Energy cost per CO₂ fixed</div>
+      <div class="sec">Năng lượng tiêu tốn cho mỗi CO₂ cố định</div>
       <table class="budget"><thead><tr><th></th><th>ATP</th><th>NADPH</th></tr></thead>
-        <tbody><tr><td>C3 plant</td><td>3</td><td>2</td></tr><tr><td>Maize (C4)</td><td>5</td><td>2</td></tr><tr><td>Per glucose, C4</td><td>30</td><td>12</td></tr></tbody></table>
-      <p class="note">The two extra ATP pay for PPDK. In return Rubisco rarely grabs O₂, which saves far more in hot, bright conditions.</p>`;
+        <tbody><tr><td>Cây C3</td><td>3</td><td>2</td></tr><tr><td>Ngô (C4)</td><td>5</td><td>2</td></tr><tr><td>Mỗi glucose, C4</td><td>30</td><td>12</td></tr></tbody></table>
+      <p class="note">Hai ATP thêm vào là chi phí cho PPDK. Đổi lại, Rubisco hầu như không gắn O₂, giúp tiết kiệm nhiều hơn hẳn trong điều kiện nóng, nắng gắt.</p>`;
   }
 }
 panel.addEventListener('click',e=>{
